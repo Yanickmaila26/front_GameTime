@@ -510,8 +510,9 @@ export default function Championships() {
         toastSuccess('Campeonato iniciado con éxito')
         fetchData()
       })
-      .catch(() => {
-        toastError('Error al iniciar el campeonato')
+      .catch(err => {
+        const errorMsg = err.response?.data?.errors?.status?.[0] || err.response?.data?.message || 'Error al iniciar el campeonato';
+        toastError(errorMsg)
         setLoading(false)
       })
   }
