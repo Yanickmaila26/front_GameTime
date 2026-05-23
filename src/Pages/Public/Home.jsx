@@ -75,8 +75,17 @@ export default function Home() {
 
   // Load auth context from localStorage
   const userString = localStorage.getItem('user')
+  let parsedUser = null
+  if (userString) {
+    try {
+      parsedUser = JSON.parse(userString)
+    } catch (e) {
+      console.warn("Invalid user object in localStorage", e)
+      localStorage.removeItem('user')
+    }
+  }
   const auth = {
-    user: userString ? JSON.parse(userString) : null
+    user: parsedUser
   }
 
   useEffect(() => {

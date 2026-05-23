@@ -54,7 +54,17 @@ function UserCard({ user }) {
 
 export default function AdminLayout({ title, children }) {
   const navigate = useNavigate()
-  const user = JSON.parse(localStorage.getItem('user'))
+  let user = null
+  const userString = localStorage.getItem('user')
+  if (userString) {
+    try {
+      user = JSON.parse(userString)
+    } catch (e) {
+      console.error("Invalid user JSON in AdminLayout", e)
+      localStorage.removeItem('user')
+      localStorage.removeItem('auth_token')
+    }
+  }
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {

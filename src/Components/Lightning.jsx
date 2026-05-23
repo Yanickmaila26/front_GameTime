@@ -22,10 +22,19 @@ export default function Lightning({
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    const gl = canvas.getContext('webgl', {
-      alpha: true,
-      premultipliedAlpha: false,
-    });
+    let gl;
+    try {
+      gl = canvas.getContext('webgl', {
+        alpha: true,
+        premultipliedAlpha: false,
+      }) || canvas.getContext('experimental-webgl', {
+        alpha: true,
+        premultipliedAlpha: false,
+      });
+    } catch (e) {
+      console.warn("WebGL not supported for Lightning effect:", e);
+      return;
+    }
     if (!gl) return;
 
     gl.clearColor(0, 0, 0, 0);

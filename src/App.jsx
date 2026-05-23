@@ -18,8 +18,17 @@ function ProtectedRoute({ children, allowedRoles }) {
     return <Navigate to="/login" replace />
   }
   
-  const user = JSON.parse(userString)
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  let user = null
+  try {
+    user = JSON.parse(userString)
+  } catch (e) {
+    console.error("Invalid user JSON in ProtectedRoute", e)
+    localStorage.removeItem('user')
+    localStorage.removeItem('auth_token')
+    return <Navigate to="/login" replace />
+  }
+
+  if (!user || (allowedRoles && !allowedRoles.includes(user.role))) {
     return <Navigate to="/admin" replace />
   }
   

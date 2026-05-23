@@ -12,7 +12,16 @@ export default function Dashboard() {
   const navigate = useNavigate()
 
   const userString = localStorage.getItem('user')
-  const user = userString ? JSON.parse(userString) : null
+  let user = null
+  if (userString) {
+    try {
+      user = JSON.parse(userString)
+    } catch (e) {
+      console.error("Invalid user JSON in Dashboard", e)
+      localStorage.removeItem('user')
+      localStorage.removeItem('auth_token')
+    }
+  }
 
   useEffect(() => {
     if (!user) {
