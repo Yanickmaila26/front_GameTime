@@ -192,16 +192,16 @@ export default function Home() {
   }, [loading, error])
 
   // Filter dynamic matches by selected round
-  const allMatches = useMemo(() => championship?.matches || [], [championship])
+  const allMatches = useMemo(() => (championship?.matches || []).filter(m => m), [championship])
   const rounds = useMemo(() => {
-    const roundList = allMatches.map(m => m.round)
+    const roundList = allMatches.map(m => m.round).filter(r => r !== undefined && r !== null)
     return [...new Set(roundList)].sort((a, b) => a - b)
   }, [allMatches])
   
   const currentOrLastRound = useMemo(() => {
     if (rounds.length === 0) return 1;
     // Find the latest round with live or scheduled matches, or just the last round
-    const pendingRound = allMatches.find(m => m.status === 'live' || m.status === 'scheduled')?.round;
+    const pendingRound = allMatches.find(m => m && (m.status === 'live' || m.status === 'scheduled'))?.round;
     return pendingRound || rounds[rounds.length - 1];
   }, [rounds, allMatches])
 
@@ -214,7 +214,7 @@ export default function Home() {
   }, [currentOrLastRound])
 
   const filteredMatches = useMemo(() => {
-    return allMatches.filter(m => m.round === selectedRound)
+    return allMatches.filter(m => m && m.round === selectedRound)
   }, [allMatches, selectedRound])
 
   const liveCount = liveMatches.length
@@ -232,12 +232,12 @@ export default function Home() {
       homeFouls: m.home_fouls_q,
       awayFouls: m.away_fouls_q,
       referee: m.referee?.name || 'Mesa Oficial',
-      events: (m.events || []).map(e => ({
+      events: (m.events || []).filter(e => e).map(e => ({
         id: e.id,
         time: `Q${e.quarter}`,
         player: e.player ? e.player.name : (e.team_id === m.home_team_id ? m.home_team?.name : m.away_team?.name),
         description: e.description,
-        score: e.home_score_snapshot !== null ? `${e.home_score_snapshot} - ${e.away_score_snapshot}` : null,
+        score: e.home_score_snapshot !== null && e.home_score_snapshot !== undefined ? `${e.home_score_snapshot} - ${e.away_score_snapshot}` : null,
         team: e.team_id === m.home_team_id ? 'home' : 'away',
       })),
       players: m.players || []

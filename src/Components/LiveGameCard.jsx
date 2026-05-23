@@ -3,14 +3,24 @@ import { ShieldAlert, Users, Award, Clock } from 'lucide-react';
 
 export default function LiveGameCard({ match, homeTeamData, awayTeamData, onOpenSheet }) {
   // Collective foul calculation max is usually 5.
-  const homeFoulsPercent = Math.min((match.homeFouls / 5) * 100, 100);
-  const awayFoulsPercent = Math.min((match.awayFouls / 5) * 100, 100);
+  const homeFouls = match?.homeFouls ?? match?.home_fouls ?? 0;
+  const awayFouls = match?.awayFouls ?? match?.away_fouls ?? 0;
+  const homeFoulsPercent = Math.min((homeFouls / 5) * 100, 100);
+  const awayFoulsPercent = Math.min((awayFouls / 5) * 100, 100);
 
   const getFoulBarColor = (fouls) => {
     if (fouls >= 5) return 'bg-red-500 shadow-[0_0_8px_#ef4444]';
     if (fouls >= 4) return 'bg-amber-500 shadow-[0_0_8px_#f59e0b]';
     return 'bg-electric';
   };
+
+  const homeLogoColor = homeTeamData?.logo_color || homeTeamData?.logoColor || 'from-orange-500 to-amber-600';
+  const homeShortName = homeTeamData?.short_name || homeTeamData?.shortName || homeTeamData?.name?.substring(0, 3).toUpperCase() || 'HOM';
+  const homeName = homeTeamData?.name || 'Local';
+
+  const awayLogoColor = awayTeamData?.logo_color || awayTeamData?.logoColor || 'from-orange-500 to-amber-600';
+  const awayShortName = awayTeamData?.short_name || awayTeamData?.shortName || awayTeamData?.name?.substring(0, 3).toUpperCase() || 'AWY';
+  const awayName = awayTeamData?.name || 'Visita';
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-[#1e1e1e] bg-gradient-to-br from-[#0c0c0c] to-[#121212] p-5 shadow-2xl glow-orange-border">
@@ -36,11 +46,11 @@ export default function LiveGameCard({ match, homeTeamData, awayTeamData, onOpen
           </span>
           <span className="text-gray-600">•</span>
           <span className="text-[11px] font-bold text-gray-400">
-            {match.quarter}
+            {match?.quarter || 'En Juego'}
           </span>
         </div>
         <span className="text-[10px] font-mono font-bold text-gray-500 bg-[#161616] border border-[#222] px-2 py-0.5 rounded flex items-center">
-          <Clock className="w-3 h-3 mr-1 text-basketball" /> {match.timeLeft}
+          <Clock className="w-3 h-3 mr-1 text-basketball" /> {match?.timeLeft || '00:00'}
         </span>
       </div>
 
@@ -48,11 +58,11 @@ export default function LiveGameCard({ match, homeTeamData, awayTeamData, onOpen
       <div className="relative grid grid-cols-7 items-center my-2">
         {/* Home Team */}
         <div className="col-span-2 flex flex-col items-center">
-          <div className={`w-14 h-14 rounded-full bg-gradient-to-tr ${homeTeamData.logoColor} flex items-center justify-center font-black text-lg text-white shadow-lg border border-[#222]`}>
-            {homeTeamData.shortName}
+          <div className={`w-14 h-14 rounded-full bg-gradient-to-tr ${homeLogoColor} flex items-center justify-center font-black text-lg text-white shadow-lg border border-[#222]`}>
+            {homeShortName}
           </div>
           <span className="text-xs font-black text-white mt-2 text-center truncate w-full">
-            {homeTeamData.name}
+            {homeName}
           </span>
           <span className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Local</span>
         </div>
@@ -60,7 +70,7 @@ export default function LiveGameCard({ match, homeTeamData, awayTeamData, onOpen
         {/* Home Score */}
         <div className="col-span-1 text-right">
           <span className="text-3xl sm:text-4xl font-extrabold text-white tracking-tighter transition-all font-sans">
-            {match.homeScore}
+            {match?.homeScore ?? match?.home_score ?? 0}
           </span>
         </div>
 
@@ -72,17 +82,17 @@ export default function LiveGameCard({ match, homeTeamData, awayTeamData, onOpen
         {/* Away Score */}
         <div className="col-span-1 text-left">
           <span className="text-3xl sm:text-4xl font-extrabold text-white tracking-tighter transition-all font-sans">
-            {match.awayScore}
+            {match?.awayScore ?? match?.away_score ?? 0}
           </span>
         </div>
 
         {/* Away Team */}
         <div className="col-span-2 flex flex-col items-center">
-          <div className={`w-14 h-14 rounded-full bg-gradient-to-tr ${awayTeamData.logoColor} flex items-center justify-center font-black text-lg text-white shadow-lg border border-[#222]`}>
-            {awayTeamData.shortName}
+          <div className={`w-14 h-14 rounded-full bg-gradient-to-tr ${awayLogoColor} flex items-center justify-center font-black text-lg text-white shadow-lg border border-[#222]`}>
+            {awayShortName}
           </div>
           <span className="text-xs font-black text-white mt-2 text-center truncate w-full">
-            {awayTeamData.name}
+            {awayName}
           </span>
           <span className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">Visita</span>
         </div>
@@ -99,14 +109,14 @@ export default function LiveGameCard({ match, homeTeamData, awayTeamData, onOpen
           {/* Home team fouls */}
           <div className="space-y-1">
             <div className="flex justify-between text-[11px] font-bold">
-              <span className="text-gray-400">{homeTeamData.shortName}</span>
-              <span className={match.homeFouls >= 5 ? 'text-red-500 font-extrabold' : 'text-white'}>
-                {match.homeFouls}/5 {match.homeFouls >= 5 && '⚠️'}
+              <span className="text-gray-400">{homeShortName}</span>
+              <span className={homeFouls >= 5 ? 'text-red-500 font-extrabold' : 'text-white'}>
+                {homeFouls}/5 {homeFouls >= 5 && '⚠️'}
               </span>
             </div>
             <div className="h-2 w-full bg-[#161616] rounded-full overflow-hidden border border-[#222]">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${getFoulBarColor(match.homeFouls)}`}
+                className={`h-full rounded-full transition-all duration-500 ${getFoulBarColor(homeFouls)}`}
                 style={{ width: `${homeFoulsPercent}%` }}
               />
             </div>
@@ -115,14 +125,14 @@ export default function LiveGameCard({ match, homeTeamData, awayTeamData, onOpen
           {/* Away team fouls */}
           <div className="space-y-1">
             <div className="flex justify-between text-[11px] font-bold">
-              <span className="text-gray-400">{awayTeamData.shortName}</span>
-              <span className={match.awayFouls >= 5 ? 'text-red-500 font-extrabold' : 'text-white'}>
-                {match.awayFouls}/5 {match.awayFouls >= 5 && '⚠️'}
+              <span className="text-gray-400">{awayShortName}</span>
+              <span className={awayFouls >= 5 ? 'text-red-500 font-extrabold' : 'text-white'}>
+                {awayFouls}/5 {awayFouls >= 5 && '⚠️'}
               </span>
             </div>
             <div className="h-2 w-full bg-[#161616] rounded-full overflow-hidden border border-[#222]">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${getFoulBarColor(match.awayFouls)}`}
+                className={`h-full rounded-full transition-all duration-500 ${getFoulBarColor(awayFouls)}`}
                 style={{ width: `${awayFoulsPercent}%` }}
               />
             </div>

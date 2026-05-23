@@ -110,7 +110,7 @@ export default function MyTeamTab({ teams = [] }) {
 
   const logoColor = selectedTeam?.logoColor || 'from-orange-500 to-amber-600';
   const isHexLogoColor = selectedTeam?.logo_color?.startsWith('#');
-  const shortName = selectedTeam?.short_name || selectedTeam?.name?.substring(0, 3).toUpperCase();
+  const shortName = selectedTeam?.short_name || selectedTeam?.name?.substring(0, 3)?.toUpperCase() || 'EQU';
   const record = `${selectedTeam?.pg ?? 0}G - ${selectedTeam?.pp ?? 0}P`;
 
   return (
