@@ -1,0 +1,53 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-basketball: #F57C00;
+  --color-basketball-light: #FFB74D;
+  --color-basketball-dark: #E65100;
+  --color-basketball-glow: rgba(245, 124, 0, 0.15);
+  
+  --color-electric: #1976D2;
+  --color-electric-light: #64B5F6;
+  --color-electric-dark: #0D47A1;
+  --color-electric-glow: rgba(25, 118, 210, 0.15);
+
+  --color-darkbg: #02040b;
+  --color-darkbg-card: #0c0d16;
+  --color-darkbg-lighter: #121422;
+  --color-darkbg-border: #1a1e35;
+
+  --font-sans: 'Outfit', 'Inter', sans-serif;
+  
+  --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+body {
+  background-color: #02040b;
+  color: #f3f4f6;
+  font-family: var(--font-sans);
+}
+
+/* Custom styles for logo marquee */
+.marquee-inner {
+  display: flex;
+  width: max-content;
+  animation: marqueeScroll linear infinite;
+}
+
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Hide scrollbars but keep functionality */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
