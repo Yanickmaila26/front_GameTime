@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gametime-cache-v4';
+const CACHE_NAME = 'gametime-cache-v5';
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -34,7 +34,7 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   // Bypass service worker for:
   // 1. Non-GET requests (like POST logins)
-  // 2. Cross-origin requests (like backend running on port 3001)
+  // 2. Cross-origin requests (like backend running on Render)
   // 3. API endpoints
   if (
     event.request.method !== 'GET' ||
@@ -44,6 +44,31 @@ self.addEventListener('fetch', event => {
     return; // Let the browser handle these normally
   }
 
+  // Network-First strategy for HTML navigation requests (to prevent index.html from caching forever)
+  const isNav = event.request.mode === 'navigate' || 
+                event.request.url === self.location.origin || 
+                event.request.url === self.location.origin + '/';
+
+  if (isNav) {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          if (response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseClone);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+
+  // Cache-First strategy for static assets
   event.respondWith(
     caches.match(event.request)
       .then(response => {
