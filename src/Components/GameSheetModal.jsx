@@ -79,12 +79,14 @@ export default function GameSheetModal({ isOpen, onClose, match, homeTeamData, a
               Quito WINTER CUP 2026 • ID: {match.id}
             </p>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-full bg-[#161616] border border-[#222] text-gray-400 hover:text-white"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="glow-btn-gray rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100 flex items-center justify-center">
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-full bg-gray-800 text-white flex items-center justify-center"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Modal Content - Scrollable */}

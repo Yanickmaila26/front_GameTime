@@ -28,10 +28,12 @@ export default function Header({ liveCount }) {
           </div>
         )}
 
-        <button className="relative p-1.5 rounded-full bg-[#0d0d0d] border border-[#1a1a1a] hover:bg-[#161616] text-gray-400 transition-colors">
-          <Bell className="w-4.5 h-4.5" />
-          <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-basketball rounded-full" />
-        </button>
+        <div className="glow-btn-orange rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100 flex items-center justify-center">
+          <button className="relative p-1.5 rounded-full bg-gray-800 text-white flex items-center justify-center">
+            <Bell className="w-4.5 h-4.5" />
+            <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-basketball rounded-full" />
+          </button>
+        </div>
 
         <div className="w-8 h-8 rounded-full border border-basketball border-opacity-40 overflow-hidden bg-[#0d0d0d] flex items-center justify-center">
           <User className="w-4 h-4 text-basketball" />

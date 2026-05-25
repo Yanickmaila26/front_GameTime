@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import ThreeBasketball from '../../Components/ThreeBasketball'
 import Lightning from '../../Components/Lightning'
@@ -74,21 +74,25 @@ export default function Home() {
   const [lightboxTitle, setLightboxTitle] = useState('')
 
   // Load auth context from localStorage
-  const userString = localStorage.getItem('user')
-  let parsedUser = null
-  if (userString) {
-    try {
-      parsedUser = JSON.parse(userString)
-    } catch (e) {
-      console.warn("Invalid user object in localStorage", e)
-      localStorage.removeItem('user')
+  const auth = useMemo(() => {
+    const userString = localStorage.getItem('user')
+    let parsedUser = null
+    if (userString) {
+      try {
+        parsedUser = JSON.parse(userString)
+      } catch (e) {
+        console.warn("Invalid user object in localStorage", e)
+        localStorage.removeItem('user')
+      }
     }
-  }
-  const auth = {
-    user: parsedUser
-  }
+    return { user: parsedUser }
+  }, [])
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 5000)
+
     client.get('/home')
       .then(res => {
         setData({
@@ -99,22 +103,26 @@ export default function Home() {
           leaders: res.data.leaders || null,
           generalMedia: Array.isArray(res.data.generalMedia) ? res.data.generalMedia : []
         })
+        clearTimeout(timer)
         setLoading(false)
       })
       .catch(err => {
         console.error("Error loading home page data:", err)
         setError("Error al cargar la información. Por favor, intente de nuevo más tarde.")
+        clearTimeout(timer)
         setLoading(false)
       })
+
+    return () => clearTimeout(timer)
   }, [])
 
   const { championship, liveMatches, teams, leaders, generalMedia } = data
 
-  const handleOpenLightbox = (imgUrl, titleText = '') => {
+  const handleOpenLightbox = useCallback((imgUrl, titleText = '') => {
     setLightboxImg(imgUrl)
     setLightboxTitle(titleText)
     setLightboxOpen(true)
-  }
+  }, [])
 
   const standingsTeams = useMemo(() => {
     return (championship?.teams || []).map(team => ({
@@ -136,7 +144,7 @@ export default function Home() {
   const adminRef = useRef(null)
 
   // Smooth scroll handler
-  const scrollToSection = (id) => {
+  const scrollToSection = useCallback((id) => {
     const refs = {
       inicio: inicioRef,
       marcadores: marcadoresRef,
@@ -150,7 +158,7 @@ export default function Home() {
       targetRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
       setActiveTab(id)
     }
-  }
+  }, [])
 
   // Intersection Observer to highlight active section on scroll
   useEffect(() => {
@@ -221,7 +229,7 @@ export default function Home() {
   const featuredLiveMatch = liveMatches[0] || null
 
   // Mapper to transform database match structure to LiveGameCard expected fields
-  const mapMatchForCard = (m) => {
+  const mapMatchForCard = useCallback((m) => {
     if (!m) return null;
     return {
       id: m.id,
@@ -242,21 +250,37 @@ export default function Home() {
       })),
       players: m.players || []
     };
-  }
+  }, [])
 
-  const handleOpenSheet = (matchObj) => {
+  const handleOpenSheet = useCallback((matchObj) => {
     setSheetMatch(matchObj)
     setIsSheetOpen(true)
-  }
+  }, [])
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#070707] text-gray-100 flex flex-col items-center justify-center p-4">
-        <div className="w-16 h-16 bg-gradient-to-tr from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-[0_8px_20px_rgba(245,124,0,0.3)] border border-orange-400 mb-4 animate-bounce">
-          <span className="text-white font-black text-2xl tracking-tighter">GT</span>
+        <div className="flex flex-col items-center justify-center space-y-8 select-none">
+          <div className="relative flex items-center justify-center h-20 w-20">
+            <div className="ball">
+              <div className="inner">
+                <div className="line"></div>
+                <div className="line line--two"></div>
+                <div className="oval"></div>
+                <div className="oval oval--two"></div>
+              </div>
+            </div>
+            <div className="shadow-ball"></div>
+          </div>
+          <div className="text-center space-y-2 mt-4">
+            <h1 className="text-3xl md:text-4xl font-black tracking-widest text-white uppercase">
+              GAME<span className="text-[#F57C00]">TIME</span>
+            </h1>
+            <p className="text-[10px] text-[#FFB74D] font-bold uppercase tracking-widest leading-none animate-pulse">
+              Cargando...
+            </p>
+          </div>
         </div>
-        <Loader2 className="w-8 h-8 text-orange-500 animate-spin mb-2" />
-        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest animate-pulse">Cargando GameTime...</p>
       </div>
     )
   }
@@ -326,19 +350,26 @@ export default function Home() {
               { id: 'equipos', label: 'Equipos' },
               { id: 'tablas', label: 'Tablas' },
               { id: 'miequipo', label: 'Mi Club' }
-            ].map((item) => (
-              <button
-                key={item.id}
-                onClick={() => scrollToSection(item.id)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                  activeTab === item.id
-                    ? 'bg-basketball text-black font-extrabold shadow-[0_0_15px_rgba(245,124,0,0.3)]'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-900/40'
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
+            ].map((item) => {
+              const isActive = activeTab === item.id;
+              return (
+                <div
+                  key={item.id}
+                  className={`${
+                    isActive ? 'glow-btn-orange' : 'glow-btn-gray'
+                  } rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100`}
+                >
+                  <button
+                    onClick={() => scrollToSection(item.id)}
+                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-gray-800 ${
+                      isActive ? 'text-basketball font-extrabold' : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                </div>
+              );
+            })}
           </nav>
 
           <div className="flex items-center space-x-4">
@@ -351,13 +382,15 @@ export default function Home() {
               </div>
             )}
             
-            <Link
-              to={auth.user ? "/admin" : "/login"}
-              className="flex items-center space-x-1.5 px-4 py-2 border border-orange-500/20 hover:border-orange-500/50 bg-darkbg-card rounded-xl text-xs font-bold text-gray-300 hover:text-white transition-all"
-            >
-              <Lock className="w-3.5 h-3.5 text-basketball" />
-              <span>{auth.user ? "Panel Admin" : "Iniciar Sesión"}</span>
-            </Link>
+            <div className="glow-btn-orange rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100">
+              <Link
+                to={auth.user ? "/admin" : "/login"}
+                className="flex items-center space-x-1.5 px-4 py-2 bg-gray-800 rounded-full text-xs font-bold text-white transition-all"
+              >
+                <Lock className="w-3.5 h-3.5 text-[#F57C00]" />
+                <span>{auth.user ? "Panel Admin" : "Iniciar Sesión"}</span>
+              </Link>
+            </div>
           </div>
         </header>
 
@@ -384,12 +417,14 @@ export default function Home() {
                 </span>
               </div>
             )}
-            <Link
-              to={auth.user ? "/admin" : "/login"}
-              className="p-1.5 border border-orange-500/20 bg-darkbg-card rounded-xl text-xs font-bold text-gray-300 hover:text-white transition-all"
-            >
-              <User className="w-4 h-4 text-basketball" />
-            </Link>
+            <div className="glow-btn-orange rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100">
+              <Link
+                to={auth.user ? "/admin" : "/login"}
+                className="flex items-center justify-center w-8 h-8 bg-gray-800 rounded-full text-xs font-bold text-white transition-all"
+              >
+                <User className="w-4 h-4 text-[#F57C00]" />
+              </Link>
+            </div>
           </div>
         </header>
 
@@ -442,20 +477,24 @@ export default function Home() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
-                  <button 
-                    onClick={() => scrollToSection('marcadores')}
-                    className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-orange-500 to-amber-600 text-black font-extrabold text-xs rounded-2xl shadow-[0_5px_20px_rgba(245,124,0,0.35)] hover:shadow-[0_8px_25px_rgba(245,124,0,0.5)] transform hover:-translate-y-0.5 transition-all flex items-center justify-center space-x-2"
-                  >
-                    <Calendar className="w-4 h-4 stroke-[2.5]" />
-                    <span>VER CALENDARIO</span>
-                  </button>
-                  <button
-                    onClick={() => scrollToSection('equipos')}
-                    className="w-full sm:w-auto px-8 py-3.5 border border-gray-800 hover:border-gray-600 bg-gray-950/50 hover:bg-gray-900/60 text-white font-extrabold text-xs rounded-2xl transition-all flex items-center justify-center space-x-2"
-                  >
-                    <span>CONOCE MÁS</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+                  <div className="glow-btn-orange rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100 w-full sm:w-auto">
+                    <button 
+                      onClick={() => scrollToSection('marcadores')}
+                      className="w-full sm:w-auto px-8 py-3 bg-gray-800 text-white font-extrabold text-xs rounded-full transition-all flex items-center justify-center space-x-2"
+                    >
+                      <Calendar className="w-4 h-4 stroke-[2.5] text-[#F57C00]" />
+                      <span>VER CALENDARIO</span>
+                    </button>
+                  </div>
+                  <div className="glow-btn-gray rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100 w-full sm:w-auto">
+                    <button
+                      onClick={() => scrollToSection('equipos')}
+                      className="w-full sm:w-auto px-8 py-3 bg-gray-800 text-white font-extrabold text-xs rounded-full transition-all flex items-center justify-center space-x-2"
+                    >
+                      <span>CONOCE MÁS</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Info Badges Grid */}
@@ -521,19 +560,22 @@ export default function Home() {
                   </span>
                   
                   <div className="flex space-x-1.5 overflow-x-auto scrollbar-hide">
-                    {rounds.map((round) => (
-                      <button
-                        key={round}
-                        onClick={() => setSelectedRound(round)}
-                        className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${
-                          selectedRound === round
-                            ? 'bg-basketball text-black border-basketball shadow-[0_0_8px_rgba(245,124,0,0.3)]'
-                            : 'bg-gray-950/60 text-gray-400 border-gray-900 hover:border-gray-800'
-                        }`}
-                      >
-                        Jornada {round} {round === currentOrLastRound && ' (Actual)'}
-                      </button>
-                    ))}
+                     {rounds.map((round) => {
+                       const isActive = selectedRound === round;
+                       return (
+                         <div 
+                           key={round}
+                           className={`${isActive ? 'glow-btn-orange' : 'glow-btn-gray'} rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100 flex-shrink-0`}
+                         >
+                           <button
+                             onClick={() => setSelectedRound(round)}
+                             className="px-3.5 py-1.5 bg-gray-800 text-[10px] font-extrabold text-white rounded-full transition-all"
+                           >
+                             Jor. {round} {round === currentOrLastRound && ' (Act.)'}
+                           </button>
+                         </div>
+                       );
+                     })}
                   </div>
                 </div>
 
@@ -700,27 +742,23 @@ export default function Home() {
               </div>
 
               {/* Tab selectors */}
-              <div className="bg-gray-950/60 border border-gray-900 p-1.5 rounded-2xl flex max-w-sm mx-auto backdrop-blur-md">
-                <button
-                  onClick={() => setStatsTab('clasificacion')}
-                  className={`flex-1 text-center py-2.5 rounded-xl text-xs font-extrabold transition-all ${
-                    statsTab === 'clasificacion'
-                      ? 'bg-gradient-to-r from-orange-500 to-amber-600 text-black shadow-md'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  Clasificación
-                </button>
-                <button
-                  onClick={() => setStatsTab('lideres')}
-                  className={`flex-1 text-center py-2.5 rounded-xl text-xs font-extrabold transition-all ${
-                    statsTab === 'lideres'
-                      ? 'bg-gradient-to-r from-orange-500 to-amber-600 text-black shadow-md'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  Líderes Individuales
-                </button>
+              <div className="flex justify-center space-x-4 max-w-sm mx-auto">
+                <div className={`${statsTab === 'clasificacion' ? 'glow-btn-orange' : 'glow-btn-gray'} rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100 flex-1`}>
+                  <button
+                    onClick={() => setStatsTab('clasificacion')}
+                    className="w-full text-center py-2.5 bg-gray-800 text-white rounded-full text-xs font-extrabold transition-all"
+                  >
+                    Clasificación
+                  </button>
+                </div>
+                <div className={`${statsTab === 'lideres' ? 'glow-btn-orange' : 'glow-btn-gray'} rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100 flex-1`}>
+                  <button
+                    onClick={() => setStatsTab('lideres')}
+                    className="w-full text-center py-2.5 bg-gray-800 text-white rounded-full text-xs font-extrabold transition-all"
+                  >
+                    Líderes Individuales
+                  </button>
+                </div>
               </div>
 
               {/* Rendering Tab Components */}
@@ -825,21 +863,25 @@ export default function Home() {
                 </p>
                 
                 {auth.user ? (
-                  <Link
-                    to="/admin"
-                    className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-black font-extrabold text-xs rounded-xl shadow-md transition-all hover:scale-105"
-                  >
-                    <span>Ir al Panel de Control</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
+                  <div className="glow-btn-orange rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100">
+                    <Link
+                      to="/admin"
+                      className="inline-flex items-center space-x-2 px-6 py-2.5 bg-gray-800 text-white font-extrabold text-xs rounded-full transition-all"
+                    >
+                      <span>Ir al Panel de Control</span>
+                      <ArrowRight className="w-4 h-4 text-[#F57C00]" />
+                    </Link>
+                  </div>
                 ) : (
-                  <Link
-                    to="/login"
-                    className="inline-flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-black font-extrabold text-xs rounded-xl shadow-md transition-all hover:scale-105"
-                  >
-                    <span>Iniciar Sesión de Mesa</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
+                  <div className="glow-btn-orange rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100">
+                    <Link
+                      to="/login"
+                      className="inline-flex items-center space-x-2 px-6 py-2.5 bg-gray-800 text-white font-extrabold text-xs rounded-full transition-all"
+                    >
+                      <span>Iniciar Sesión de Mesa</span>
+                      <ArrowRight className="w-4 h-4 text-[#F57C00]" />
+                    </Link>
+                  </div>
                 )}
               </div>
             </div>

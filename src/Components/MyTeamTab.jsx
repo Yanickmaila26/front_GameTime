@@ -243,19 +243,20 @@ export default function MyTeamTab({ teams = [] }) {
                 Elige al mejor jugador de **{selectedTeam?.name}** para ser nombrado MVP de la última jornada del torneo.
               </p>
               {topMvpCandidates.map((player) => (
-                <button
-                  key={player.id}
-                  onClick={() => handleVote(player.id)}
-                  className="w-full flex items-center justify-between bg-gray-950/40 hover:bg-gray-900/40 border border-gray-900/60 p-2.5 rounded-xl text-xs font-bold text-gray-300 hover:text-white transition-all active:scale-98"
-                >
-                  <div className="flex items-center space-x-2">
-                    <span className="text-[9px] text-gray-400 font-mono">#{player.number}</span>
-                    <span>{player.name}</span>
-                  </div>
-                  <span className="text-[9px] text-orange-500 font-extrabold uppercase bg-orange-500/10 border border-orange-500/20 px-2.5 py-0.5 rounded-lg">
-                    Votar
-                  </span>
-                </button>
+                <div key={player.id} className="glow-btn-orange rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100 w-full">
+                  <button
+                    onClick={() => handleVote(player.id)}
+                    className="w-full flex items-center justify-between bg-gray-800 p-2.5 px-4 rounded-full text-xs font-bold text-white transition-all"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <span className="text-[9px] text-gray-400 font-mono">#{player.number}</span>
+                      <span className="font-extrabold text-white">{player.name}</span>
+                    </div>
+                    <span className="text-[9px] text-[#F57C00] font-black uppercase bg-orange-500/10 border border-orange-500/20 px-2.5 py-0.5 rounded-full">
+                      Votar
+                    </span>
+                  </button>
+                </div>
               ))}
             </div>
           ) : (
