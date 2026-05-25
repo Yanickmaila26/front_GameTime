@@ -58,12 +58,14 @@ export default function Dashboard() {
         <div className="bg-red-950/40 border border-red-500/30 rounded-2xl p-6 text-center max-w-sm mx-auto my-10">
           <span className="text-2xl mb-2 block">⚠️</span>
           <p className="text-xs font-bold text-red-400 uppercase tracking-wide">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-4 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-600 text-black font-extrabold text-xs rounded-xl shadow-md hover:from-orange-600 hover:to-amber-700 transition-all"
-          >
-            Reintentar
-          </button>
+          <div className="glow-btn-orange rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100 mt-4 mx-auto w-fit">
+            <button 
+              onClick={() => window.location.reload()} 
+              className="px-6 py-2 bg-gray-800 text-white font-extrabold text-xs rounded-full transition-all"
+            >
+              Reintentar
+            </button>
+          </div>
         </div>
       </AdminLayout>
     )

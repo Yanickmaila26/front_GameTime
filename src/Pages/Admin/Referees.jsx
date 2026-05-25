@@ -89,10 +89,12 @@ function RefereeModal({ referee, onClose, onSuccess }) {
               </select>
             </div>
           )}
-          <button type="submit" disabled={processing}
-            className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-black font-bold text-sm rounded-2xl disabled:opacity-50">
-            {processing ? 'Guardando...' : referee ? 'Actualizar' : 'Crear Árbitro'}
-          </button>
+          <div className="glow-btn-orange rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100 w-full mt-2">
+            <button type="submit" disabled={processing}
+              className="w-full py-3.5 bg-gray-800 text-white font-extrabold text-sm rounded-full transition-all disabled:opacity-50">
+              {processing ? 'Guardando...' : referee ? 'Actualizar' : 'Crear Árbitro'}
+            </button>
+          </div>
         </form>
       </div>
     </div>
@@ -159,11 +161,13 @@ export default function Referees() {
             </span>
             <h1 className="text-xl font-black text-white mt-1">Árbitros</h1>
           </div>
-          <button onClick={() => setModal({})}
-            className="flex items-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-600 text-black text-xs font-bold rounded-2xl">
-            <Plus className="w-4 h-4" />
-            <span>Nuevo Árbitro</span>
-          </button>
+          <div className="glow-btn-orange rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100">
+            <button onClick={() => setModal({})}
+              className="flex items-center space-x-2 px-4 py-2.5 bg-gray-800 text-white text-xs font-extrabold rounded-full transition-all">
+              <Plus className="w-4 h-4 text-[#F57C00]" />
+              <span>Nuevo Árbitro</span>
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

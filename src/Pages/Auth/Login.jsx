@@ -122,20 +122,22 @@ export default function Login() {
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={processing}
-            className="w-full py-4 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-black font-extrabold text-sm rounded-2xl transition-all transform active:scale-95 flex items-center justify-center space-x-2 shadow-[0_8px_25px_rgba(245,124,0,0.2)] disabled:opacity-50"
-          >
-            {processing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <>
-                <Shield className="w-4 h-4" />
-                <span>Ingresar al Panel</span>
-              </>
-            )}
-          </button>
+          <div className="glow-btn-orange rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100 w-full mt-2">
+            <button
+              type="submit"
+              disabled={processing}
+              className="w-full py-3.5 bg-gray-800 text-white font-extrabold text-sm rounded-full transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
+            >
+              {processing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <Shield className="w-4 h-4 text-[#F57C00]" />
+                  <span>Ingresar al Panel</span>
+                </>
+              )}
+            </button>
+          </div>
         </form>
 
         <div className="mt-8 text-center">

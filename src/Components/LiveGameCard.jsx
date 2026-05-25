@@ -141,13 +141,15 @@ export default function LiveGameCard({ match, homeTeamData, awayTeamData, onOpen
       </div>
 
       {/* Action Button */}
-      <button
-        onClick={onOpenSheet}
-        className="relative w-full mt-4 bg-gradient-to-r from-basketball to-amber-600 hover:from-amber-600 hover:to-orange-700 text-black font-extrabold text-xs tracking-wider uppercase py-3 rounded-2xl transition-all duration-300 transform active:scale-95 shadow-md flex items-center justify-center space-x-2"
-      >
-        <Award className="w-4 h-4 text-black stroke-[2.5]" />
-        <span>Ver Acta Digital en Tiempo Real</span>
-      </button>
+      <div className="glow-btn-orange rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100 w-full mt-4">
+        <button
+          onClick={onOpenSheet}
+          className="w-full bg-gray-800 text-white font-extrabold text-xs tracking-wider uppercase py-3 rounded-full transition-all flex items-center justify-center space-x-2"
+        >
+          <Award className="w-4 h-4 text-[#F57C00] stroke-[2.5]" />
+          <span>Ver Acta Digital en Tiempo Real</span>
+        </button>
+      </div>
     </div>
   );
 }
