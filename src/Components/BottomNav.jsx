@@ -11,7 +11,7 @@ export default function BottomNav({ activeTab, setActiveTab }) {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#070707] bg-opacity-80 backdrop-blur-xl border-t border-[#121212] px-4 py-2 pb-5 md:pb-3 max-w-md mx-auto shadow-[0_-5px_30px_rgba(0,0,0,0.8)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#070707]/80 backdrop-blur-xl border-t border-[#121212] px-4 py-2 pb-5 md:pb-3 max-w-md mx-auto shadow-[0_-5px_30px_rgba(0,0,0,0.8)]">
       <div className="flex justify-between items-center">
         {tabs.map((tab) => {
           const Icon = tab.icon;

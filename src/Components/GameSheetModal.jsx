@@ -60,7 +60,7 @@ export default function GameSheetModal({ isOpen, onClose, match, homeTeamData, a
   const showMvp = isFinished && mvpPlayer && mvpPlayer.pts > 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black bg-opacity-75 backdrop-blur-sm p-0 sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 backdrop-blur-sm p-0 sm:p-4">
       {/* Backdrop tap to close */}
       <div className="absolute inset-0" onClick={onClose} />
 
@@ -104,7 +104,7 @@ export default function GameSheetModal({ isOpen, onClose, match, homeTeamData, a
             </div>
 
             <div className="flex flex-col items-center justify-center">
-              <span className="text-[9px] uppercase font-extrabold text-basketball tracking-widest bg-basketball bg-opacity-10 px-2 py-0.5 rounded border border-basketball border-opacity-20 animate-pulse mb-1">
+              <span className="text-[9px] uppercase font-extrabold text-basketball tracking-widest bg-basketball/10 px-2 py-0.5 rounded border border-basketball/20 animate-pulse mb-1">
                 {match.quarter}
               </span>
               <div className="flex items-center space-x-1">
@@ -187,7 +187,7 @@ export default function GameSheetModal({ isOpen, onClose, match, homeTeamData, a
               <h4 className="text-[10px] uppercase font-bold text-gray-500 tracking-widest">
                 Cronología de Eventos
               </h4>
-              <span className="text-[9px] text-green-500 font-bold uppercase flex items-center bg-green-500 bg-opacity-10 border border-green-500 border-opacity-35 px-1.5 py-0.5 rounded">
+              <span className="text-[9px] text-green-500 font-bold uppercase flex items-center bg-green-500/10 border border-green-500/35 px-1.5 py-0.5 rounded">
                 <Play className="w-2.5 h-2.5 mr-1 fill-green-500" /> Transmisión
               </span>
             </div>
@@ -209,7 +209,7 @@ export default function GameSheetModal({ isOpen, onClose, match, homeTeamData, a
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-white text-[11px]">{event.player}</span>
                           {event.score && (
-                            <span className="text-[10px] bg-electric bg-opacity-10 border border-electric border-opacity-35 text-electric px-1.5 rounded font-bold font-mono">
+                            <span className="text-[10px] bg-electric/10 border border-electric/35 text-electric px-1.5 rounded font-bold font-mono">
                               {event.score}
                             </span>
                           )}
@@ -244,7 +244,7 @@ export default function GameSheetModal({ isOpen, onClose, match, homeTeamData, a
                       </span>
                       <div className="flex items-center space-x-2 flex-shrink-0">
                         <span className="font-extrabold text-white text-[11px]">{p.pts} PTS</span>
-                        <span className={`text-[10px] px-1 rounded font-bold ${p.fouls >= 5 ? 'bg-red-900 bg-opacity-30 border border-red-500 text-red-500' : 'bg-[#1c1c1c] text-gray-500'}`}>
+                        <span className={`text-[10px] px-1 rounded font-bold ${p.fouls >= 5 ? 'bg-red-900/30 border border-red-500 text-red-500' : 'bg-[#1c1c1c] text-gray-500'}`}>
                           {p.fouls}F
                         </span>
                       </div>
@@ -267,7 +267,7 @@ export default function GameSheetModal({ isOpen, onClose, match, homeTeamData, a
                       </span>
                       <div className="flex items-center space-x-2 flex-shrink-0">
                         <span className="font-extrabold text-white text-[11px]">{p.pts} PTS</span>
-                        <span className={`text-[10px] px-1 rounded font-bold ${p.fouls >= 5 ? 'bg-red-500 bg-opacity-20 border border-red-500 text-red-500 font-extrabold' : 'bg-[#1c1c1c] text-gray-500'}`}>
+                        <span className={`text-[10px] px-1 rounded font-bold ${p.fouls >= 5 ? 'bg-red-500/20 border border-red-500 text-red-500 font-extrabold' : 'bg-[#1c1c1c] text-gray-500'}`}>
                           {p.fouls}F
                         </span>
                       </div>

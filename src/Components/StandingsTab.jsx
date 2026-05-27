@@ -128,7 +128,7 @@ export default function StandingsTab({ teams }) {
 
                             {/* Points */}
                             <td className="py-3.5 px-3 text-center">
-                              <span className="text-xs font-extrabold text-[#f57c00] bg-[#f57c00] bg-opacity-10 px-2 py-0.5 rounded border border-basketball border-opacity-20">
+                              <span className="text-xs font-extrabold text-white bg-[#f57c00]/20 px-2.5 py-0.5 rounded-lg border border-[#f57c00]/30 shadow-[0_0_8px_rgba(245,124,0,0.15)]">
                                 {team.pts}
                               </span>
                             </td>

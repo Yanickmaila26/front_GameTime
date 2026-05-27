@@ -396,7 +396,7 @@ export default function Home() {
         </header>
 
         {/* Mobile Header */}
-        <header className="md:hidden sticky top-0 z-40 w-full bg-darkbg bg-opacity-80 backdrop-blur-md border-b border-[#121212] px-4 py-3 flex items-center justify-between">
+        <header className="md:hidden sticky top-0 z-40 w-full bg-darkbg/80 backdrop-blur-md border-b border-[#121212] px-4 py-3 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <img src="/logo_game_time.png" alt="GameTime Logo" className="w-8 h-8 object-contain" />
             <div>

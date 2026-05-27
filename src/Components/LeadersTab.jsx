@@ -50,7 +50,7 @@ export default function LeadersTab({ leaders }) {
                 {/* Stylized Jersey Badge */}
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm border ${
                   idx === 0
-                    ? 'bg-basketball bg-opacity-10 border-basketball text-basketball'
+                    ? 'bg-basketball/10 border-basketball/35 text-basketball'
                     : 'bg-gray-950/40 border-gray-900/60 text-gray-400'
                 }`}>
                   {player.avatar}
@@ -111,7 +111,7 @@ export default function LeadersTab({ leaders }) {
               <div className="flex items-center space-x-3.5">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm border ${
                   idx === 0
-                    ? 'bg-electric bg-opacity-10 border-electric text-electric-light'
+                    ? 'bg-electric/10 border-electric/35 text-electric-light'
                     : 'bg-gray-950/40 border-gray-900/60 text-gray-400'
                 }`}>
                   {player.avatar}
@@ -172,7 +172,7 @@ export default function LeadersTab({ leaders }) {
               <div className="flex items-center space-x-3.5">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm border ${
                   idx === 0
-                    ? 'bg-amber-500 bg-opacity-10 border-amber-500 text-amber-400'
+                    ? 'bg-amber-500/10 border-amber-500/35 text-amber-400'
                     : 'bg-gray-950/40 border-gray-900/60 text-gray-400'
                 }`}>
                   {player.avatar}
