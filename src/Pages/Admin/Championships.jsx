@@ -418,9 +418,11 @@ function ManualMatchModal({ championship, onClose, onSuccess }) {
     label:        '',
     court:        'Coliseo Principal',
     scheduled_at: '',
+    group_name:   '',
   })
   const [errors, setErrors] = useState({})
   const [processing, setProcessing] = useState(false)
+  const [sameTeamError, setSameTeamError] = useState(false)
 
   const setData = (keyOrFunc, value) => {
     if (typeof keyOrFunc === 'function') {
@@ -432,11 +434,35 @@ function ManualMatchModal({ championship, onClose, onSuccess }) {
     }
   };
 
+  const championshipTeams = championship?.teams || []
+  const hasGroups = championshipTeams.some(t => t.pivot?.group_name)
+
+  const groupOptions = hasGroups
+    ? Array.from(new Set(championshipTeams.map(t => t.pivot?.group_name).filter(Boolean))).sort()
+    : []
+
+  const isGroupStage = data.stage === 'group'
+
+  const filteredTeams = (hasGroups && isGroupStage)
+    ? (data.group_name ? championshipTeams.filter(t => t.pivot?.group_name === data.group_name) : [])
+    : championshipTeams
+
   const submit = (e) => {
     e.preventDefault()
+    if (data.home_team_id && data.away_team_id && String(data.home_team_id) === String(data.away_team_id)) {
+      setSameTeamError(true)
+      return
+    }
+    setSameTeamError(false)
     setProcessing(true)
     setErrors({})
-    client.post(`/admin/campeonatos/${championship.id}/partido-manual`, data)
+
+    const payload = {
+      ...data,
+      group_name: (hasGroups && isGroupStage) ? data.group_name : null,
+    }
+
+    client.post(`/admin/campeonatos/${championship.id}/partido-manual`, payload)
       .then(() => {
         toastSuccess('Partido manual agregado con éxito')
         onSuccess()
@@ -453,6 +479,7 @@ function ManualMatchModal({ championship, onClose, onSuccess }) {
 
   const selectClass = "w-full bg-[#121212] border border-[#222] text-white text-sm px-4 py-3 rounded-2xl outline-none focus:border-orange-500"
   const inputClass  = "w-full bg-[#121212] border border-[#222] text-white text-sm px-4 py-3 rounded-2xl outline-none focus:border-orange-500"
+  const labelClass = "block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5"
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
@@ -462,49 +489,106 @@ function ManualMatchModal({ championship, onClose, onSuccess }) {
           <button onClick={onClose} className="text-gray-500 hover:text-white"><X className="w-5 h-5" /></button>
         </div>
         <form onSubmit={submit} className="space-y-4">
+          
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider">🏠 Equipo Local</label>
-              <select value={data.home_team_id} onChange={e => setData('home_team_id', e.target.value)} required className={selectClass}>
-                <option value="">Seleccionar equipo local...</option>
-                {championship.teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider">✈ Equipo Visitante</label>
-              <select value={data.away_team_id} onChange={e => setData('away_team_id', e.target.value)} required className={selectClass}>
-                <option value="">Seleccionar equipo visitante...</option>
-                {championship.teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider">🎭 Fase del partido</label>
-              <select value={data.stage} onChange={e => setData('stage', e.target.value)} className={selectClass}>
+              <label className={labelClass}>🎭 Fase del partido</label>
+              <select 
+                value={data.stage} 
+                onChange={e => {
+                  setDataState(prev => ({
+                    ...prev,
+                    stage: e.target.value,
+                    group_name: '',
+                    home_team_id: '',
+                    away_team_id: ''
+                  }))
+                  setSameTeamError(false)
+                }} 
+                className={selectClass}
+              >
                 <option value="group">Fase de Grupos</option>
                 <option value="playoff">Playoffs (Eliminatoria)</option>
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider">🏷 Etiqueta <span className="normal-case text-gray-600 font-normal">(ej: Semifinal)</span></label>
+              <label className={labelClass}>🏷 Etiqueta <span className="normal-case text-gray-600 font-normal">(ej: Semifinal)</span></label>
               <input value={data.label} onChange={e => setData('label', e.target.value)} placeholder="Ej: Final, Semifinal" className={inputClass} />
             </div>
           </div>
 
+          {/* Grupo (si la fase es grupos y el campeonato tiene grupos) */}
+          {hasGroups && isGroupStage && (
+            <div className="space-y-1.5">
+              <label className={labelClass}>🗂 Grupo</label>
+              <select
+                value={data.group_name}
+                onChange={e => {
+                  setDataState(prev => ({
+                    ...prev,
+                    group_name: e.target.value,
+                    home_team_id: '',
+                    away_team_id: ''
+                  }))
+                  setSameTeamError(false)
+                }}
+                required
+                className={selectClass}
+              >
+                <option value="">Seleccionar grupo</option>
+                {groupOptions.map(g => <option key={g} value={g}>Grupo {g}</option>)}
+              </select>
+            </div>
+          )}
+
+          {/* Equipos */}
+          {(!hasGroups || !isGroupStage || data.group_name) ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className={labelClass}>🏠 Equipo Local</label>
+                <select value={data.home_team_id} onChange={e => { setData('home_team_id', e.target.value); setSameTeamError(false) }} required className={selectClass}>
+                  <option value="">Seleccionar equipo local...</option>
+                  {filteredTeams.map(t => (
+                    <option key={t.id} value={t.id} disabled={String(t.id) === String(data.away_team_id)}>
+                      {t.name}{String(t.id) === String(data.away_team_id) ? ' (ya seleccionado)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className={labelClass}>✈ Equipo Visitante</label>
+                <select value={data.away_team_id} onChange={e => { setData('away_team_id', e.target.value); setSameTeamError(false) }} required className={selectClass}>
+                  <option value="">Seleccionar equipo visitante...</option>
+                  {filteredTeams.map(t => (
+                    <option key={t.id} value={t.id} disabled={String(t.id) === String(data.home_team_id)}>
+                      {t.name}{String(t.id) === String(data.home_team_id) ? ' (ya seleccionado)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-orange-500/5 border border-orange-500/10 rounded-2xl p-3 text-center text-xs text-orange-400 font-bold">
+              Selecciona un grupo para poder elegir los equipos.
+            </div>
+          )}
+
+          {sameTeamError && (
+            <p className="text-red-400 text-xs font-semibold px-1">⚠ El equipo local y visitante no pueden ser el mismo.</p>
+          )}
+
           <div className="space-y-1.5">
-            <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider">📍 Cancha / Lugar del partido</label>
+            <label className={labelClass}>📍 Cancha / Lugar del partido</label>
             <input value={data.court} onChange={e => setData('court', e.target.value)} placeholder="Ej: Coliseo Municipal" className={inputClass} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider">📅 Fecha y hora programada</label>
+              <label className={labelClass}>📅 Fecha y hora programada</label>
               <input value={data.scheduled_at} onChange={e => setData('scheduled_at', e.target.value)} type="datetime-local" className={inputClass} />
             </div>
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-wider">🔢 Número de Jornada / Ronda</label>
+              <label className={labelClass}>🔢 Número de Jornada / Ronda</label>
               <input value={data.round} onChange={e => setData('round', +e.target.value)} type="number" min={1} placeholder="Ej: 1" className={inputClass} />
             </div>
           </div>
