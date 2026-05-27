@@ -8,16 +8,17 @@ const STATUS_LABEL = { scheduled: 'Prog.', live: '🔴 Vivo', finished: 'Fin.' }
 
 function TeamLogo({ team, className = "w-10 h-10" }) {
   if (!team) return null
+  const isSmall = className.includes('w-5') || className.includes('w-6')
   if (team.logo_url) {
-    return <img src={getAssetUrl(team.logo_url)} alt={team.name} className={`${className} rounded-xl object-cover flex-shrink-0`} />
+    return <img src={getAssetUrl(team.logo_url)} alt={team.name} className={`${className} ${isSmall ? 'rounded-lg' : 'rounded-xl'} object-cover flex-shrink-0`} />
   }
   const isHex = team.logo_color?.startsWith('#')
   return (
     <div 
       style={isHex ? { backgroundColor: team.logo_color } : {}}
-      className={`${className} ${!isHex ? `bg-gradient-to-br ${team.logo_color || 'from-orange-500 to-amber-600'}` : ''} rounded-xl flex items-center justify-center font-black text-black text-xs flex-shrink-0`}
+      className={`${className} ${!isHex ? `bg-gradient-to-br ${team.logo_color || 'from-orange-500 to-amber-600'}` : ''} ${isSmall ? 'rounded-lg text-[9px]' : 'rounded-xl text-xs'} flex items-center justify-center font-black text-black flex-shrink-0`}
     >
-      {team.short_name}
+      {team.short_name || ''}
     </div>
   )
 }

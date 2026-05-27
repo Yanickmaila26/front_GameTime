@@ -1,4 +1,21 @@
 import React from 'react';
+import { getAssetUrl } from '../api/client';
+
+function TeamLogo({ team, className = "w-5.5 h-5.5" }) {
+  if (!team) return null;
+  if (team.logo_url) {
+    return <img src={getAssetUrl(team.logo_url)} alt={team.name} className={`${className} rounded-lg object-cover flex-shrink-0`} />;
+  }
+  const isHex = team.logo_color?.startsWith('#');
+  return (
+    <div 
+      style={isHex ? { backgroundColor: team.logo_color } : {}}
+      className={`${className} ${!isHex ? `bg-gradient-to-br ${team.logo_color || 'from-orange-500 to-amber-600'}` : ''} rounded-lg flex items-center justify-center font-black text-black text-[9px] flex-shrink-0`}
+    >
+      {team.short_name || ''}
+    </div>
+  );
+}
 
 export default function StandingsTab({ teams }) {
   const hasGroups = teams.some(t => t.group_name);
@@ -78,14 +95,12 @@ export default function StandingsTab({ teams }) {
                             </td>
 
                             {/* Team Name and Logo badge */}
-                            <td className="py-3.5 px-3">
-                              <div className="flex items-center space-x-2.5">
-                                <span className={`w-3.5 h-3.5 rounded-full bg-gradient-to-tr ${team.logoColor} border border-[#222] shadow`} />
-                                <div className="flex flex-col">
-                                  <span className="text-xs font-black text-white leading-tight">
-                                    {team.name}
-                                  </span>
-                                </div>
+                            <td className="py-3 px-3">
+                              <div className="flex items-center space-x-2">
+                                <TeamLogo team={team} className="w-5.5 h-5.5" />
+                                <span className="text-xs font-black text-white leading-tight">
+                                  {team.name}
+                                </span>
                               </div>
                             </td>
 
