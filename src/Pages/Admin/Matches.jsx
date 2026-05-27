@@ -22,10 +22,13 @@ function MatchModal({ match, championships, teams, referees, onClose, onSuccess 
     referee_id: match?.referee_id ?? '',
     court: match?.court ?? 'Coliseo Principal',
     scheduled_at: match?.scheduled_at ?? '',
+    group_name: match?.group_name ?? '',
   })
   const [errors, setErrors] = useState({})
   const [processing, setProcessing] = useState(false)
   const [sameTeamError, setSameTeamError] = useState(false)
+
+  const isReadOnly = match && match.status !== 'scheduled'
 
   const setData = (keyOrFunc, value) => {
     if (typeof keyOrFunc === 'function') {
@@ -37,6 +40,19 @@ function MatchModal({ match, championships, teams, referees, onClose, onSuccess 
     }
   };
 
+  // Derived state for championship-dependent logic
+  const selectedChamp = championships.find(c => String(c.id) === String(data.championship_id))
+  const championshipTeams = selectedChamp?.teams || []
+  const hasGroups = championshipTeams.some(t => t.pivot?.group_name)
+
+  const groupOptions = hasGroups
+    ? Array.from(new Set(championshipTeams.map(t => t.pivot?.group_name).filter(Boolean))).sort()
+    : []
+
+  const filteredTeams = hasGroups
+    ? (data.group_name ? championshipTeams.filter(t => t.pivot?.group_name === data.group_name) : [])
+    : championshipTeams
+
   const submit = (e) => {
     e.preventDefault()
     if (data.home_team_id && data.away_team_id && String(data.home_team_id) === String(data.away_team_id)) {
@@ -46,9 +62,15 @@ function MatchModal({ match, championships, teams, referees, onClose, onSuccess 
     setSameTeamError(false)
     setProcessing(true)
     setErrors({})
+
+    const payload = {
+      ...data,
+      group_name: hasGroups ? data.group_name : null,
+    }
+
     const request = match
-      ? client.put(`/admin/partidos/${match.id}`, data)
-      : client.post('/admin/partidos', data)
+      ? client.put(`/admin/partidos/${match.id}`, payload)
+      : client.post('/admin/partidos', payload)
 
     request
       .then(() => {
@@ -66,7 +88,7 @@ function MatchModal({ match, championships, teams, referees, onClose, onSuccess 
   }
 
   const labelClass = "block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5"
-  const selectClass = "w-full bg-[#121212] border border-[#222] text-white text-sm px-4 py-3 rounded-2xl outline-none focus:border-orange-500 transition-colors"
+  const selectClass = "w-full bg-[#121212] border border-[#222] text-white text-sm px-4 py-3 rounded-2xl outline-none focus:border-orange-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
   const inputClass  = "w-full bg-[#121212] border border-[#222] text-white text-sm px-4 py-3 rounded-2xl outline-none focus:border-orange-500 transition-colors placeholder:text-gray-600"
 
   return (
@@ -75,7 +97,11 @@ function MatchModal({ match, championships, teams, referees, onClose, onSuccess 
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-sm font-black text-white">{match ? 'Editar Partido' : 'Nuevo Partido'}</h3>
-            <p className="text-[11px] text-gray-500 mt-0.5">Completa todos los campos para registrar el partido</p>
+            <p className="text-[11px] text-gray-500 mt-0.5">
+              {isReadOnly 
+                ? 'El partido ya inició o finalizó. Solo se permite editar detalles técnicos como cancha, árbitro y fecha.' 
+                : 'Completa todos los campos para registrar el partido'}
+            </p>
           </div>
           <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
         </div>
@@ -84,54 +110,111 @@ function MatchModal({ match, championships, teams, referees, onClose, onSuccess 
           {/* Campeonato */}
           <div>
             <label className={labelClass}>🏆 Campeonato</label>
-            <select value={data.championship_id} onChange={e => setData('championship_id', e.target.value)} required className={selectClass}>
+            <select 
+              value={data.championship_id} 
+              onChange={e => {
+                setDataState(prev => ({
+                  ...prev,
+                  championship_id: e.target.value,
+                  group_name: '',
+                  home_team_id: '',
+                  away_team_id: ''
+                }))
+                setSameTeamError(false)
+              }} 
+              required 
+              disabled={isReadOnly}
+              className={selectClass}
+            >
               <option value="">Seleccionar campeonato al que pertenece el partido</option>
               {championships.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
             {errors.championship_id && <p className="text-red-400 text-xs mt-1">{errors.championship_id}</p>}
           </div>
 
-          {/* Equipos */}
-          <div>
-            <label className={labelClass}>⚡ Equipos enfrentados</label>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <p className="text-[10px] text-gray-600 mb-1 font-semibold">🏠 Local (de casa)</p>
-                <select
-                  value={data.home_team_id}
-                  onChange={e => { setData('home_team_id', e.target.value); setSameTeamError(false) }}
-                  required
-                  className={selectClass}
-                >
-                  <option value="">Seleccionar equipo</option>
-                  {teams.map(t => (
-                    <option key={t.id} value={t.id} disabled={String(t.id) === String(data.away_team_id)}>
-                      {t.name}{String(t.id) === String(data.away_team_id) ? ' (ya seleccionado)' : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-600 mb-1 font-semibold">✈ Visitante (foráneo)</p>
-                <select
-                  value={data.away_team_id}
-                  onChange={e => { setData('away_team_id', e.target.value); setSameTeamError(false) }}
-                  required
-                  className={selectClass}
-                >
-                  <option value="">Seleccionar equipo</option>
-                  {teams.map(t => (
-                    <option key={t.id} value={t.id} disabled={String(t.id) === String(data.home_team_id)}>
-                      {t.name}{String(t.id) === String(data.home_team_id) ? ' (ya seleccionado)' : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
+          {/* Grupo (si el campeonato tiene grupos) */}
+          {data.championship_id && hasGroups && (
+            <div>
+              <label className={labelClass}>🗂 Grupo</label>
+              <select
+                value={data.group_name}
+                onChange={e => {
+                  setDataState(prev => ({
+                    ...prev,
+                    group_name: e.target.value,
+                    home_team_id: '',
+                    away_team_id: ''
+                  }))
+                  setSameTeamError(false)
+                }}
+                required
+                disabled={isReadOnly}
+                className={selectClass}
+              >
+                <option value="">Seleccionar grupo</option>
+                {groupOptions.map(g => <option key={g} value={g}>Grupo {g}</option>)}
+              </select>
+              {errors.group_name && <p className="text-red-400 text-xs mt-1">{errors.group_name}</p>}
             </div>
-            {sameTeamError && (
-              <p className="text-red-400 text-xs font-semibold mt-2 px-1">⚠ El equipo local y visitante no pueden ser el mismo.</p>
-            )}
-          </div>
+          )}
+
+          {/* Equipos */}
+          {data.championship_id && (!hasGroups || data.group_name) && (
+            <div>
+              <label className={labelClass}>⚡ Equipos enfrentados</label>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-[10px] text-gray-600 mb-1 font-semibold">🏠 Local (de casa)</p>
+                  <select
+                    value={data.home_team_id}
+                    onChange={e => { setData('home_team_id', e.target.value); setSameTeamError(false) }}
+                    required
+                    disabled={isReadOnly}
+                    className={selectClass}
+                  >
+                    <option value="">Seleccionar equipo</option>
+                    {filteredTeams.map(t => (
+                      <option key={t.id} value={t.id} disabled={String(t.id) === String(data.away_team_id)}>
+                        {t.name}{String(t.id) === String(data.away_team_id) ? ' (ya seleccionado)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <p className="text-[10px] text-gray-600 mb-1 font-semibold">✈ Visitante (foráneo)</p>
+                  <select
+                    value={data.away_team_id}
+                    onChange={e => { setData('away_team_id', e.target.value); setSameTeamError(false) }}
+                    required
+                    disabled={isReadOnly}
+                    className={selectClass}
+                  >
+                    <option value="">Seleccionar equipo</option>
+                    {filteredTeams.map(t => (
+                      <option key={t.id} value={t.id} disabled={String(t.id) === String(data.home_team_id)}>
+                        {t.name}{String(t.id) === String(data.home_team_id) ? ' (ya seleccionado)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              {sameTeamError && (
+                <p className="text-red-400 text-xs font-semibold mt-2 px-1">⚠ El equipo local y visitante no pueden ser el mismo.</p>
+              )}
+            </div>
+          )}
+
+          {data.championship_id && hasGroups && !data.group_name && (
+            <div className="bg-orange-500/5 border border-orange-500/10 rounded-2xl p-3 text-center text-xs text-orange-400 font-bold">
+              Selecciona un grupo para poder elegir los equipos.
+            </div>
+          )}
+
+          {!data.championship_id && (
+            <div className="bg-[#121212]/30 border border-[#222]/30 rounded-2xl p-4 text-center text-xs text-gray-500 italic">
+              Por favor, selecciona un campeonato primero para poder elegir los equipos y grupos.
+            </div>
+          )}
 
           {/* Árbitro */}
           <div>
