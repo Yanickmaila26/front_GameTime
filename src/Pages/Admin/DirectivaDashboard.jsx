@@ -26,42 +26,65 @@ function StandingsTable({ championship }) {
   if (!championship?.teams?.length) {
     return <p className="text-xs text-gray-500 text-center py-8">No hay equipos en el campeonato activo.</p>
   }
+  const hasGroups = championship.teams?.some(t => t.pivot?.group_name);
+  let groupedStandings = {};
+  if (hasGroups) {
+    championship.teams.forEach(t => {
+      const gName = t.pivot.group_name || 'Sin Grupo';
+      if (!groupedStandings[gName]) groupedStandings[gName] = [];
+      groupedStandings[gName].push(t);
+    });
+  } else {
+    groupedStandings['General'] = championship.teams || [];
+  }
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-xs border-collapse">
-        <thead>
-          <tr className="text-gray-500 border-b border-[#222] uppercase font-bold tracking-wider text-[10px]">
-            <th className="py-2.5 text-left">#</th>
-            <th className="py-2.5 text-left">Equipo</th>
-            <th className="py-2.5 text-center">PJ</th>
-            <th className="py-2.5 text-center">PG</th>
-            <th className="py-2.5 text-center">PP</th>
-            <th className="py-2.5 text-center">Dif</th>
-            <th className="py-2.5 text-center font-black text-orange-400">Pts</th>
-          </tr>
-        </thead>
-        <tbody>
-          {championship.teams.map((team, idx) => (
-            <tr key={team.id} className={`border-b border-[#1a1a1a] transition-all ${idx === 0 ? 'bg-orange-500/5' : 'hover:bg-[#121212]/50'}`}>
-              <td className="py-3 text-gray-500 font-black pl-1">{idx + 1}</td>
-              <td className="py-3">
-                <div className="flex items-center space-x-2">
-                  <TeamLogo team={team} className="w-6 h-6" />
-                  <span className="font-bold text-white">{team.name}</span>
-                  {idx === 0 && <span className="text-[9px] bg-orange-500/20 text-orange-400 font-black px-1.5 py-0.5 rounded-full">LÍDER</span>}
-                </div>
-              </td>
-              <td className="py-3 text-center text-gray-400">{team.pivot?.pj ?? 0}</td>
-              <td className="py-3 text-center text-emerald-400 font-semibold">{team.pivot?.pg ?? 0}</td>
-              <td className="py-3 text-center text-red-400">{team.pivot?.pp ?? 0}</td>
-              <td className="py-3 text-center text-gray-400 font-mono text-[10px]">
-                {(team.pivot?.dif ?? 0) > 0 ? `+${team.pivot.dif}` : (team.pivot?.dif ?? 0)}
-              </td>
-              <td className="py-3 text-center font-black text-orange-400 text-sm">{team.pivot?.pts ?? 0}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-6">
+      {Object.entries(groupedStandings).map(([groupName, groupTeams]) => (
+        <div key={groupName} className="space-y-2">
+          {hasGroups && (
+            <h4 className="text-xs font-black text-orange-400 uppercase tracking-wider pl-1">
+              Grupo {groupName}
+            </h4>
+          )}
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="text-gray-500 border-b border-[#222] uppercase font-bold tracking-wider text-[10px]">
+                  <th className="py-2.5 text-left">#</th>
+                  <th className="py-2.5 text-left">Equipo</th>
+                  <th className="py-2.5 text-center">PJ</th>
+                  <th className="py-2.5 text-center">PG</th>
+                  <th className="py-2.5 text-center">PP</th>
+                  <th className="py-2.5 text-center">Dif</th>
+                  <th className="py-2.5 text-center font-black text-orange-400">Pts</th>
+                </tr>
+              </thead>
+              <tbody>
+                {groupTeams.map((team, idx) => (
+                  <tr key={team.id} className={`border-b border-[#1a1a1a] last:border-b-0 transition-all ${idx === 0 ? 'bg-orange-500/5' : 'hover:bg-[#121212]/50'}`}>
+                    <td className="py-3 text-gray-500 font-black pl-1">{idx + 1}</td>
+                    <td className="py-3">
+                      <div className="flex items-center space-x-2">
+                        <TeamLogo team={team} className="w-6 h-6" />
+                        <span className="font-bold text-white">{team.name}</span>
+                        {idx === 0 && <span className="text-[9px] bg-orange-500/20 text-orange-400 font-black px-1.5 py-0.5 rounded-full">LÍDER</span>}
+                      </div>
+                    </td>
+                    <td className="py-3 text-center text-gray-400">{team.pivot?.pj ?? 0}</td>
+                    <td className="py-3 text-center text-emerald-400 font-semibold">{team.pivot?.pg ?? 0}</td>
+                    <td className="py-3 text-center text-red-400">{team.pivot?.pp ?? 0}</td>
+                    <td className="py-3 text-center text-gray-400 font-mono text-[10px]">
+                      {(team.pivot?.dif ?? 0) > 0 ? `+${team.pivot.dif}` : (team.pivot?.dif ?? 0)}
+                    </td>
+                    <td className="py-3 text-center font-black text-orange-400 text-sm">{team.pivot?.pts ?? 0}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
     </div>
   )
 }

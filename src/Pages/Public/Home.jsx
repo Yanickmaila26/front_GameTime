@@ -132,6 +132,7 @@ export default function Home() {
       pp: team.pivot?.pp ?? 0,
       pts: team.pivot?.pts ?? 0,
       dif: team.pivot?.dif ?? 0,
+      group_name: team.pivot?.group_name ?? null,
       logoColor: team.logo_color || 'from-orange-500 to-amber-600',
     }))
   }, [championship])

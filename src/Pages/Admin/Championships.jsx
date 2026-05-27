@@ -163,6 +163,9 @@ function ChampionshipModal({ championship, teams, onClose, onSuccess }) {
     rounds:          championship?.rounds ?? 1,
     has_third_place: championship?.has_third_place ?? false,
     team_ids:        championship?.teams?.map(t => t.id) ?? [],
+    divide_groups:   false,
+    group_count:     2,
+    team_groups:     {},
   })
   const [errors, setErrors] = useState({})
   const [processing, setProcessing] = useState(false)
@@ -193,9 +196,30 @@ function ChampionshipModal({ championship, teams, onClose, onSuccess }) {
 
     setProcessing(true)
     setErrors({})
+
+    const payload = {
+      name: data.name,
+      gender: data.gender,
+      has_group_stage: data.has_group_stage,
+      rounds: data.rounds,
+      has_third_place: data.has_third_place,
+    }
+
+    if (data.divide_groups && data.has_group_stage) {
+      const groups = {}
+      data.team_ids.forEach(id => {
+        const g = data.team_groups[id] || 'A'
+        if (!groups[g]) groups[g] = []
+        groups[g].push(id)
+      })
+      payload.groups = groups
+    } else {
+      payload.team_ids = data.team_ids
+    }
+
     const request = championship
-      ? client.put(`/admin/campeonatos/${championship.id}`, data)
-      : client.post('/admin/campeonatos', data)
+      ? client.put(`/admin/campeonatos/${championship.id}`, payload)
+      : client.post('/admin/campeonatos', payload)
 
     request
       .then(() => {
@@ -206,7 +230,7 @@ function ChampionshipModal({ championship, teams, onClose, onSuccess }) {
         if (err.response?.data?.errors) {
           setErrors(err.response.data.errors)
         } else {
-          toastError('Error al guardar el campeonato')
+          toastError(err.response?.data?.message || 'Error al guardar el campeonato')
         }
       })
       .finally(() => setProcessing(false))
@@ -276,6 +300,28 @@ function ChampionshipModal({ championship, teams, onClose, onSuccess }) {
                 </div>
               )}
 
+              {data.has_group_stage && (
+                <div className="flex items-center space-x-6 pt-1 border-t border-[#1a1a1a] mt-2 pt-2">
+                  <label className="flex items-center space-x-2 text-xs text-white cursor-pointer select-none">
+                    <input type="checkbox" checked={data.divide_groups}
+                      onChange={e => setData(d => ({ ...d, divide_groups: e.target.checked }))}
+                      className="accent-orange-500" />
+                    <span>Dividir en Grupos</span>
+                  </label>
+                  {data.divide_groups && (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-[10px] text-gray-400">Grupos:</span>
+                      <select value={data.group_count}
+                        onChange={e => setData(d => ({ ...d, group_count: +e.target.value }))}
+                        className="bg-[#121212] border border-[#222] text-white text-[11px] px-2 py-1 rounded-lg">
+                        <option value={2}>2 Grupos</option>
+                        <option value={4}>4 Grupos</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Indicador de equipos requeridos para eliminatoria */}
               {!data.has_group_stage && (
                 <div className="flex items-center space-x-2 pt-1">
@@ -307,18 +353,47 @@ function ChampionshipModal({ championship, teams, onClose, onSuccess }) {
               {filteredTeams.length === 0 ? (
                 <p className="text-xs text-gray-600 italic">No hay equipos activos con la categoría seleccionada.</p>
               ) : (
-                <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
-                  {filteredTeams.map(team => (
-                    <button key={team.id} type="button" onClick={() => toggleTeam(team.id)}
-                      className={`flex items-center space-x-2 p-2.5 rounded-xl text-xs font-bold border transition-all ${
-                        data.team_ids.includes(team.id)
-                          ? 'border-orange-500 bg-orange-500/10 text-orange-400'
-                          : 'border-[#222] bg-[#121212] text-gray-400 hover:border-[#444]'
-                      }`}>
-                      <TeamLogo team={team} className="w-5 h-5" />
-                      <span className="truncate">{team.name}</span>
-                    </button>
-                  ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                  {filteredTeams.map(team => {
+                    const isSelected = data.team_ids.includes(team.id);
+                    const currentGroup = data.team_groups[team.id] || 'A';
+                    const groupsOptions = Array.from({ length: data.group_count }, (_, i) => String.fromCharCode(65 + i)); // ['A', 'B', ...]
+
+                    return (
+                      <div key={team.id}
+                        className={`flex items-center justify-between p-2 rounded-xl text-xs border transition-all ${
+                          isSelected
+                            ? 'border-orange-500 bg-orange-500/5 text-white font-bold'
+                            : 'border-[#222] bg-[#121212]/50 text-gray-400 hover:border-[#444]'
+                        }`}>
+                        <div className="flex items-center space-x-2 cursor-pointer flex-1 py-1" onClick={() => toggleTeam(team.id)}>
+                          <TeamLogo team={team} className="w-5 h-5" />
+                          <span className="truncate max-w-[100px]">{team.name}</span>
+                        </div>
+                        {isSelected && data.divide_groups && data.has_group_stage && (
+                          <div className="flex items-center space-x-1 pl-2 border-l border-[#222]" onClick={e => e.stopPropagation()}>
+                            {groupsOptions.map(g => (
+                              <button
+                                key={g}
+                                type="button"
+                                onClick={() => setData(d => ({
+                                  ...d,
+                                  team_groups: { ...d.team_groups, [team.id]: g }
+                                }))}
+                                className={`w-5 h-5 rounded flex items-center justify-center text-[10px] font-black transition-all ${
+                                  currentGroup === g
+                                    ? 'bg-orange-500 text-black'
+                                    : 'bg-[#1a1a1a] text-gray-500 hover:text-white'
+                                }`}
+                              >
+                                {g}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -689,44 +764,69 @@ export default function Championships() {
                       </div>
 
                       {/* Tabla general */}
-                      {getTab(champ.id, champ.has_group_stage) === 'standings' && champ.has_group_stage && (
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-left text-xs border-collapse">
-                            <thead>
-                              <tr className="text-gray-500 border-b border-[#222] uppercase font-bold tracking-wider">
-                                <th className="py-2.5">Equipo</th>
-                                <th className="py-2.5 text-center">PJ</th>
-                                <th className="py-2.5 text-center">PG</th>
-                                <th className="py-2.5 text-center">PP</th>
-                                <th className="py-2.5 text-center">Dif</th>
-                                <th className="py-2.5 text-center">Pts</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {champ.teams?.length === 0 ? (
-                                <tr>
-                                  <td colSpan="6" className="py-4 text-center text-gray-500 italic">No hay equipos asignados a este campeonato.</td>
-                                </tr>
-                              ) : (
-                                champ.teams.map((team, idx) => (
-                                  <tr key={team.id} className="border-b border-[#1a1a1a] hover:bg-[#121212]/50">
-                                    <td className="py-3 flex items-center space-x-2 font-bold text-white">
-                                      <span className="w-4 text-gray-600 text-center">{idx + 1}</span>
-                                      <TeamLogo team={team} className="w-6 h-6" />
-                                      <span>{team.name}</span>
-                                    </td>
-                                    <td className="py-3 text-center text-gray-300">{team.pivot?.pj ?? 0}</td>
-                                    <td className="py-3 text-center text-emerald-400 font-semibold">{team.pivot?.pg ?? 0}</td>
-                                    <td className="py-3 text-center text-red-400">{team.pivot?.pp ?? 0}</td>
-                                    <td className="py-3 text-center text-gray-400 font-mono">{team.pivot?.dif > 0 ? `+${team.pivot.dif}` : team.pivot?.dif ?? 0}</td>
-                                    <td className="py-3 text-center text-orange-500 font-bold">{team.pivot?.pts ?? 0}</td>
-                                  </tr>
-                                ))
-                              )}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
+                      {getTab(champ.id, champ.has_group_stage) === 'standings' && champ.has_group_stage && (() => {
+                        const hasGroups = champ.teams?.some(t => t.pivot?.group_name);
+                        let groupedStandings = {};
+                        if (hasGroups) {
+                          champ.teams.forEach(t => {
+                            const gName = t.pivot.group_name || 'Sin Grupo';
+                            if (!groupedStandings[gName]) groupedStandings[gName] = [];
+                            groupedStandings[gName].push(t);
+                          });
+                        } else {
+                          groupedStandings['General'] = champ.teams || [];
+                        }
+
+                        return (
+                          <div className="space-y-6">
+                            {Object.entries(groupedStandings).map(([groupName, groupTeams]) => (
+                              <div key={groupName} className="space-y-2">
+                                {hasGroups && (
+                                  <h4 className="text-xs font-black text-orange-500 uppercase tracking-wider pl-1">
+                                    Grupo {groupName}
+                                  </h4>
+                                )}
+                                <div className="overflow-x-auto bg-[#121212]/30 border border-[#222]/30 rounded-2xl p-4">
+                                  <table className="w-full text-left text-xs border-collapse">
+                                    <thead>
+                                      <tr className="text-gray-500 border-b border-[#222]/50 uppercase font-bold tracking-wider">
+                                        <th className="py-2.5">Equipo</th>
+                                        <th className="py-2.5 text-center">PJ</th>
+                                        <th className="py-2.5 text-center">PG</th>
+                                        <th className="py-2.5 text-center">PP</th>
+                                        <th className="py-2.5 text-center">Dif</th>
+                                        <th className="py-2.5 text-center">Pts</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {groupTeams.length === 0 ? (
+                                        <tr>
+                                          <td colSpan="6" className="py-4 text-center text-gray-500 italic">No hay equipos en este grupo.</td>
+                                        </tr>
+                                      ) : (
+                                        groupTeams.map((team, idx) => (
+                                          <tr key={team.id} className="border-b border-[#1a1a1a]/30 last:border-b-0 hover:bg-[#121212]/50">
+                                            <td className="py-3 flex items-center space-x-2 font-bold text-white">
+                                              <span className="w-4 text-gray-600 text-center">{idx + 1}</span>
+                                              <TeamLogo team={team} className="w-6 h-6" />
+                                              <span>{team.name}</span>
+                                            </td>
+                                            <td className="py-3 text-center text-gray-300">{team.pivot?.pj ?? 0}</td>
+                                            <td className="py-3 text-center text-emerald-400 font-semibold">{team.pivot?.pg ?? 0}</td>
+                                            <td className="py-3 text-center text-red-400">{team.pivot?.pp ?? 0}</td>
+                                            <td className="py-3 text-center text-gray-400 font-mono">{team.pivot?.dif > 0 ? `+${team.pivot.dif}` : team.pivot?.dif ?? 0}</td>
+                                            <td className="py-3 text-center text-orange-500 font-bold">{team.pivot?.pts ?? 0}</td>
+                                          </tr>
+                                        ))
+                                      )}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
 
                       {/* Partidos de grupo */}
                       {getTab(champ.id, champ.has_group_stage) === 'matches' && champ.has_group_stage && (
@@ -763,6 +863,11 @@ export default function Championships() {
                                         </div>
                                       </div>
                                       <div className="text-[10px] text-right text-gray-500">
+                                        {match.group_name && (
+                                          <span className="inline-block bg-orange-500/10 border border-orange-500/20 text-orange-400 text-[8px] px-1.5 py-0.5 rounded-full uppercase tracking-wider mb-1">
+                                            Grupo {match.group_name}
+                                          </span>
+                                        )}
                                         <p>{match.court}</p>
                                         {match.scheduled_at && <p className="mt-0.5">{new Date(match.scheduled_at).toLocaleDateString('es')}</p>}
                                       </div>
