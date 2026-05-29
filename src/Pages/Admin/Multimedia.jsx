@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import AdminLayout from '../../Components/AdminLayout';
 import { Image, Upload, Trash2, Shield, Globe, Plus, AlertCircle } from 'lucide-react';
-import { toastSuccess, toastError } from '../../lib/swal';
+import { toastSuccess, toastError, confirmDelete } from '../../lib/swal';
 import client, { getAssetUrl } from '../../api/client';
 
 export default function Multimedia() {
@@ -131,16 +131,21 @@ export default function Multimedia() {
   };
 
   const handleDelete = (id) => {
-    if (confirm('¿Estás seguro de que deseas eliminar esta imagen de la galería?')) {
-      client.delete(`/admin/multimedia/${id}`)
-        .then(() => {
-          toastSuccess('Imagen eliminada con éxito de la galería');
-          fetchData();
-        })
-        .catch(() => {
-          toastError('Error al eliminar la imagen');
-        });
-    }
+    confirmDelete(
+      '¿Eliminar imagen?',
+      '¿Estás seguro de que deseas eliminar esta imagen de la galería?'
+    ).then((result) => {
+      if (result.isConfirmed) {
+        client.delete(`/admin/multimedia/${id}`)
+          .then(() => {
+            toastSuccess('Imagen eliminada con éxito de la galería');
+            fetchData();
+          })
+          .catch(() => {
+            toastError('Error al eliminar la imagen');
+          });
+      }
+    });
   };
 
   if (loading) {
