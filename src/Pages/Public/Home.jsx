@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react'
 import { Link } from 'react-router-dom'
-import ThreeBasketball from '../../Components/ThreeBasketball'
+const ThreeBasketball = lazy(() => import('../../Components/ThreeBasketball'))
 import Lightning from '../../Components/Lightning'
 import BottomNav from '../../Components/BottomNav'
 import LiveGameCard from '../../Components/LiveGameCard'
@@ -257,59 +257,15 @@ export default function Home() {
     setIsSheetOpen(true)
   }, [])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#070707] text-gray-100 flex flex-col items-center justify-center p-4">
-        <div className="flex flex-col items-center justify-center space-y-8 select-none">
-          <div className="relative flex items-center justify-center h-20 w-20">
-            <div className="ball">
-              <div className="inner">
-                <div className="line"></div>
-                <div className="line line--two"></div>
-                <div className="oval"></div>
-                <div className="oval oval--two"></div>
-              </div>
-            </div>
-            <div className="shadow-ball"></div>
-          </div>
-          <div className="text-center space-y-2 mt-4">
-            <h1 className="text-3xl md:text-4xl font-black tracking-widest text-white uppercase">
-              GAME<span className="text-[#F57C00]">TIME</span>
-            </h1>
-            <p className="text-[10px] text-[#FFB74D] font-bold uppercase tracking-widest leading-none animate-pulse">
-              Cargando...
-            </p>
-          </div>
-        </div>
-      </div>
-    )
-  }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-[#070707] text-gray-100 flex flex-col items-center justify-center p-4">
-        <div className="w-16 h-16 bg-gradient-to-tr from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-[0_8px_20px_rgba(245,124,0,0.3)] border border-orange-400 mb-4">
-          <span className="text-white font-black text-2xl tracking-tighter">GT</span>
-        </div>
-        <div className="bg-red-950/40 border border-red-500/30 rounded-2xl p-6 text-center max-w-sm">
-          <span className="text-2xl mb-2 block">⚠️</span>
-          <p className="text-xs font-bold text-red-400 uppercase tracking-wide">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-4 px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-600 text-black font-extrabold text-xs rounded-xl shadow-md hover:from-orange-600 hover:to-amber-700 transition-all"
-          >
-            Reintentar
-          </button>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="relative min-h-screen bg-darkbg text-gray-100 overflow-x-hidden">
       
       {/* 3D WebGL rotating basketball */}
-      <ThreeBasketball />
+      <Suspense fallback={null}>
+        <ThreeBasketball />
+      </Suspense>
 
       {/* Dynamic Electric Lightning WebGL Background */}
       <div className="fixed inset-0 w-full h-full z-0 pointer-events-none opacity-30">
@@ -942,6 +898,54 @@ export default function Home() {
                   {lightboxTitle}
                 </p>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Loader Overlay (minimizes Cumulative Layout Shift) */}
+        {loading && (
+          <div className="fixed inset-0 z-50 bg-[#070707] text-gray-100 flex flex-col items-center justify-center p-4">
+            <div className="flex flex-col items-center justify-center space-y-8 select-none">
+              <div className="relative flex items-center justify-center h-20 w-20">
+                <div className="ball">
+                  <div className="inner">
+                    <div className="line"></div>
+                    <div className="line line--two"></div>
+                    <div className="oval"></div>
+                    <div className="oval oval--two"></div>
+                  </div>
+                </div>
+                <div className="shadow-ball"></div>
+              </div>
+              <div className="text-center space-y-2 mt-4">
+                <h1 className="text-3xl md:text-4xl font-black tracking-widest text-white uppercase">
+                  GAME<span className="text-[#F57C00]">TIME</span>
+                </h1>
+                <p className="text-[10px] text-[#FFB74D] font-bold uppercase tracking-widest leading-none animate-pulse">
+                  Cargando...
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error Overlay (minimizes Cumulative Layout Shift) */}
+        {error && (
+          <div className="fixed inset-0 z-50 bg-[#070707] text-gray-100 flex flex-col items-center justify-center p-4">
+            <div className="w-16 h-16 bg-gradient-to-tr from-orange-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-[0_8px_20px_rgba(245,124,0,0.3)] border border-orange-400 mb-4">
+              <span className="text-white font-black text-2xl tracking-tighter">GT</span>
+            </div>
+            <div className="bg-red-950/40 border border-red-500/30 rounded-2xl p-6 text-center max-w-sm">
+              <span className="text-2xl mb-2 block">⚠️</span>
+              <p className="text-xs font-bold text-red-400 uppercase tracking-wide">{error}</p>
+              <div className="glow-btn-orange rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100 mt-4 mx-auto w-fit">
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="px-6 py-2 bg-gray-800 text-white font-extrabold text-xs rounded-full transition-all"
+                >
+                  Reintentar
+                </button>
+              </div>
             </div>
           </div>
         )}
