@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Users, Award, Shield, Calendar, CheckCircle2, TrendingUp, ChevronDown, Image } from 'lucide-react';
+import { getAssetUrl } from '../api/client';
 
 export default function MyTeamTab({ teams = [] }) {
   const [selectedTeamId, setSelectedTeamId] = useState(null);
@@ -124,7 +125,7 @@ export default function MyTeamTab({ teams = [] }) {
           {/* Stylized Logo Badge */}
           {selectedTeam?.logo_url ? (
             <img 
-              src={selectedTeam.logo_url} 
+              src={getAssetUrl(selectedTeam.logo_url)} 
               alt={selectedTeam.name} 
               className="w-14 h-14 rounded-2xl object-cover flex-shrink-0 border border-gray-900/60"
             />
@@ -203,11 +204,11 @@ export default function MyTeamTab({ teams = [] }) {
               {photosToDisplay.map((photo) => (
                 <div
                   key={photo.id}
-                  onClick={() => handleOpenLocalLightbox(photo.file_path, photo.title)}
+                  onClick={() => handleOpenLocalLightbox(getAssetUrl(photo.file_path), photo.title)}
                   className="group relative rounded-xl overflow-hidden aspect-square border border-gray-900 bg-gray-950/40 cursor-pointer"
                 >
                   <img
-                    src={photo.file_path}
+                    src={getAssetUrl(photo.file_path)}
                     alt={photo.title || 'Foto de Equipo'}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"
