@@ -29,13 +29,15 @@ export default function BottomNav({ activeTab, setActiveTab }) {
               
               {/* Icon Container with active styling */}
               <div
-                className={`flex items-center justify-center p-1.5 rounded-xl transition-all duration-300 ${
+                className={`flex items-center justify-center rounded-full transition-all duration-300 ${
                   isActive
-                    ? 'text-[#f57c00] transform -translate-y-1'
-                    : 'text-gray-500 hover:text-gray-300'
+                    ? 'glow-btn-orange p-0.5 shadow-[0_0_12px_rgba(245,124,0,0.3)] transform -translate-y-1'
+                    : 'p-1.5 text-gray-500 hover:text-gray-300'
                 }`}
               >
-                <Icon className={`w-5 h-5 stroke-[2] ${isActive ? 'stroke-[2.5]' : ''}`} />
+                <div className={`flex items-center justify-center rounded-full ${isActive ? 'p-1.5 bg-gray-800 text-basketball' : ''}`}>
+                  <Icon className={`w-5 h-5 stroke-[2] ${isActive ? 'stroke-[2.5]' : ''}`} />
+                </div>
               </div>
 
               {/* Label */}

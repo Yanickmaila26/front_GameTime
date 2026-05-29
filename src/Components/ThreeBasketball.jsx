@@ -9,14 +9,16 @@ export default function ThreeBasketball() {
   
   // Track scroll and window size to update target position and scale dynamically
   useEffect(() => {
-    const updateTargets = () => {
-      const scrollY = window.scrollY;
-      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = maxScroll > 0 ? scrollY / maxScroll : 0;
-      scrollProgressRef.current = progress;
+    let scrollHeight = document.documentElement.scrollHeight;
+    let innerHeight = window.innerHeight;
+    let maxScroll = scrollHeight - innerHeight;
+    let isMobile = window.innerWidth < 768;
 
-      const width = window.innerWidth;
-      const isMobile = width < 768;
+    const recache = () => {
+      scrollHeight = document.documentElement.scrollHeight;
+      innerHeight = window.innerHeight;
+      maxScroll = scrollHeight - innerHeight;
+      isMobile = window.innerWidth < 768;
 
       // Define coordinates for the Hero state (right side on desktop, centered on mobile)
       const xHero = isMobile ? 0 : 1.25;
@@ -31,28 +33,50 @@ export default function ThreeBasketball() {
         z: zHero
       };
       targetScaleRef.current = scaleHero;
+    };
+
+    let ticking = false;
+
+    const updateTargets = () => {
+      const scrollY = window.scrollY;
+      const progress = maxScroll > 0 ? scrollY / maxScroll : 0;
+      scrollProgressRef.current = progress;
 
       // Smoothly fade out container opacity as the user scrolls past the Hero section
       if (containerRef.current) {
         const fadeStart = 50; // start fading almost immediately when scrolling
-        const fadeEnd = window.innerHeight * 0.65; // completely invisible by 65% height
+        const fadeEnd = innerHeight * 0.65; // completely invisible by 65% height
         let opacity = 1.0;
         if (scrollY > fadeStart) {
           opacity = Math.max(0.35, 1 - (scrollY - fadeStart) / (fadeEnd - fadeStart));
         }
         containerRef.current.style.opacity = opacity;
       }
+      ticking = false;
     };
 
-    window.addEventListener('scroll', updateTargets, { passive: true });
-    window.addEventListener('resize', updateTargets);
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(updateTargets);
+        ticking = true;
+      }
+    };
+
+    const onResize = () => {
+      recache();
+      onScroll();
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize);
     
     // Initial call to set positions correctly
+    recache();
     updateTargets();
 
     return () => {
-      window.removeEventListener('scroll', updateTargets);
-      window.removeEventListener('resize', updateTargets);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
     };
   }, []);
 
