@@ -141,24 +141,26 @@ export default function Home() {
   const equiposRef = useRef(null)
   const tablasRef = useRef(null)
   const miequipoRef = useRef(null)
-  const adminRef = useRef(null)
 
   // Smooth scroll handler
   const scrollToSection = useCallback((id) => {
+    if (id === 'admin') {
+      window.location.href = auth.user ? '/admin' : '/login'
+      return
+    }
     const refs = {
       inicio: inicioRef,
       marcadores: marcadoresRef,
       equipos: equiposRef,
       tablas: tablasRef,
-      miequipo: miequipoRef,
-      admin: adminRef
+      miequipo: miequipoRef
     }
     const targetRef = refs[id]
     if (targetRef && targetRef.current) {
       targetRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
       setActiveTab(id)
     }
-  }, [])
+  }, [auth.user])
 
   // Intersection Observer to highlight active section on scroll
   useEffect(() => {
@@ -169,8 +171,7 @@ export default function Home() {
       { id: 'marcadores', ref: marcadoresRef },
       { id: 'equipos', ref: equiposRef },
       { id: 'tablas', ref: tablasRef },
-      { id: 'miequipo', ref: miequipoRef },
-      { id: 'admin', ref: adminRef }
+      { id: 'miequipo', ref: miequipoRef }
     ]
 
     const observerOptions = {
@@ -414,14 +415,7 @@ export default function Home() {
             <div className="max-w-7xl w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-center z-10">
               <div className="md:col-span-7 flex flex-col items-center md:items-start text-center md:text-left space-y-6">
                 
-                <div className="inline-flex items-center space-x-1 bg-orange-500/10 border border-orange-500/20 text-[10px] font-extrabold text-[#f57c00] px-3.5 py-1 rounded-full uppercase tracking-widest">
-                  <Sparkles className="w-3.5 h-3.5 mr-1" /> Oficial PWA 2026
-                </div>
-
                 <div className="space-y-2">
-                  <span className="block text-xs md:text-sm font-extrabold text-[#FFB74D] uppercase tracking-widest">
-                    Torneo de Invierno Latacunga
-                  </span>
                   <h1 className="text-4xl md:text-7xl font-extrabold text-white tracking-tighter leading-none">
                     PASIÓN, EQUIPO <br />
                     Y <span className="text-transparent bg-clip-text bg-gradient-to-r from-basketball to-amber-500">VICTORIA</span>
@@ -459,7 +453,7 @@ export default function Home() {
                     { title: 'Competencia', desc: 'Niveles élite y amateur', val: '★ ÉLITE' },
                     { title: 'Equipos', desc: 'Registrados en el sistema', val: `${teams.length} CLUBES` },
                     { title: 'Fechas', desc: 'Calendario Oficial', val: 'JORNADAS 1-12' },
-                    { title: 'Sede', desc: 'Latacunga, Cotopaxi', val: 'COLISEO LATACUNGA' }
+                    { title: 'Sede', desc: 'Latacunga, Cotopaxi', val: 'COLISEO MAYOR CAMILO GALLEGOS' }
                   ].map((badge, idx) => (
                     <div key={idx} className="flex flex-col p-3 bg-gray-900/25 border border-gray-900/50 rounded-2xl text-left backdrop-blur-md">
                       <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">{badge.title}</span>
@@ -802,46 +796,7 @@ export default function Home() {
             </div>
           </section>
 
-          {/* SECTION 6: PANEL ADMIN BANNER */}
-          <section 
-            id="admin" 
-            ref={adminRef}
-            className="py-20 px-6 relative"
-          >
-            <div className="max-w-3xl w-full mx-auto text-center z-10">
-              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-950/80 to-[#030614]/80 border border-gray-900/60 p-8 flex flex-col items-center space-y-4 backdrop-blur-xl">
-                <div className="w-14 h-14 bg-orange-500/10 rounded-2xl flex items-center justify-center border border-orange-500/20 text-[#F57C00]">
-                  <Lock className="w-7 h-7" />
-                </div>
-                <h3 className="text-lg md:text-2xl font-black text-white">Panel Administrativo Protegido</h3>
-                <p className="text-xs text-gray-400 max-w-sm leading-relaxed">
-                  Mesa técnica y árbitros registrados: Autentícate para administrar el ciclo de vida de los partidos en vivo, inscribir equipos y generar actas.
-                </p>
-                
-                {auth.user ? (
-                  <div className="glow-btn-orange rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100">
-                    <Link
-                      to="/admin"
-                      className="inline-flex items-center space-x-2 px-6 py-2.5 bg-gray-800 text-white font-extrabold text-xs rounded-full transition-all"
-                    >
-                      <span>Ir al Panel de Control</span>
-                      <ArrowRight className="w-4 h-4 text-[#F57C00]" />
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="glow-btn-orange rounded-full p-0.5 hover:scale-105 transition duration-300 active:scale-100">
-                    <Link
-                      to="/login"
-                      className="inline-flex items-center space-x-2 px-6 py-2.5 bg-gray-800 text-white font-extrabold text-xs rounded-full transition-all"
-                    >
-                      <span>Iniciar Sesión de Mesa</span>
-                      <ArrowRight className="w-4 h-4 text-[#F57C00]" />
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </div>
-          </section>
+
         </main>
 
         {/* Footer */}
@@ -854,7 +809,7 @@ export default function Home() {
           <div className="space-y-1">
             <span className="block text-[10px] text-orange-500 font-bold uppercase tracking-widest">GameTime PWA v2.0 - 3D Experience</span>
             <span className="block text-[9px] text-gray-600 font-semibold max-w-md mx-auto leading-relaxed">
-              Plataforma oficial desarrollada para la Directiva del Torneo de Invierno Latacunga 2026. Todos los derechos reservados.
+              Plataforma oficial desarrollada para Game Time Latacunga 2026. Todos los derechos reservados.
             </span>
           </div>
         </footer>
