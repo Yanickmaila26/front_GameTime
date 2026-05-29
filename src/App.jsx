@@ -1,13 +1,15 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Home from './Pages/Public/Home'
-import Login from './Pages/Auth/Login'
-import Dashboard from './Pages/Admin/Dashboard'
-import Teams from './Pages/Admin/Teams'
-import Referees from './Pages/Admin/Referees'
-import Championships from './Pages/Admin/Championships'
-import Matches from './Pages/Admin/Matches'
-import MatchLive from './Pages/Admin/MatchLive'
-import Multimedia from './Pages/Admin/Multimedia'
+
+const Login = lazy(() => import('./Pages/Auth/Login'))
+const Dashboard = lazy(() => import('./Pages/Admin/Dashboard'))
+const Teams = lazy(() => import('./Pages/Admin/Teams'))
+const Referees = lazy(() => import('./Pages/Admin/Referees'))
+const Championships = lazy(() => import('./Pages/Admin/Championships'))
+const Matches = lazy(() => import('./Pages/Admin/Matches'))
+const MatchLive = lazy(() => import('./Pages/Admin/MatchLive'))
+const Multimedia = lazy(() => import('./Pages/Admin/Multimedia'))
 
 // Simple Auth guard component
 function ProtectedRoute({ children, allowedRoles }) {
@@ -35,56 +37,66 @@ function ProtectedRoute({ children, allowedRoles }) {
   return children
 }
 
+function PageLoader() {
+  return (
+    <div className="min-h-screen bg-[#070707] flex flex-col items-center justify-center">
+      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-orange-500"></div>
+    </div>
+  )
+}
+
 function App() {
   return (
     <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
 
-        {/* Protected Admin/Directiva Routes */}
-        <Route path="/admin" element={
-          <ProtectedRoute allowedRoles={['admin', 'directiva']}>
-            <Dashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/equipos" element={
-          <ProtectedRoute allowedRoles={['admin', 'directiva']}>
-            <Teams />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/partidos" element={
-          <ProtectedRoute allowedRoles={['admin', 'directiva']}>
-            <Matches />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/partidos/:id/live" element={
-          <ProtectedRoute allowedRoles={['admin', 'directiva']}>
-            <MatchLive />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/multimedia" element={
-          <ProtectedRoute allowedRoles={['admin', 'directiva']}>
-            <Multimedia />
-          </ProtectedRoute>
-        } />
+          {/* Protected Admin/Directiva Routes */}
+          <Route path="/admin" element={
+            <ProtectedRoute allowedRoles={['admin', 'directiva']}>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/equipos" element={
+            <ProtectedRoute allowedRoles={['admin', 'directiva']}>
+              <Teams />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/partidos" element={
+            <ProtectedRoute allowedRoles={['admin', 'directiva']}>
+              <Matches />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/partidos/:id/live" element={
+            <ProtectedRoute allowedRoles={['admin', 'directiva']}>
+              <MatchLive />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/multimedia" element={
+            <ProtectedRoute allowedRoles={['admin', 'directiva']}>
+              <Multimedia />
+            </ProtectedRoute>
+          } />
 
-        {/* Protected Admin Only Routes */}
-        <Route path="/admin/arbitros" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <Referees />
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/campeonatos" element={
-          <ProtectedRoute allowedRoles={['admin']}>
-            <Championships />
-          </ProtectedRoute>
-        } />
+          {/* Protected Admin Only Routes */}
+          <Route path="/admin/arbitros" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Referees />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/campeonatos" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Championships />
+            </ProtectedRoute>
+          } />
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </Router>
   )
 }
