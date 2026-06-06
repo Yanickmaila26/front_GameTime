@@ -210,7 +210,6 @@ export default function MyTeamTab({ teams = [] }) {
                     src={photo.file_path}
                     alt={photo.title || 'Foto de Equipo'}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
                   />
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center text-center p-1">
                     <span className="text-[8px] font-black text-white uppercase tracking-wider">Ampliar</span>

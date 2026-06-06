@@ -89,10 +89,6 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 5000)
-
     client.get('/home')
       .then(res => {
         setData({
@@ -103,17 +99,13 @@ export default function Home() {
           leaders: res.data.leaders || null,
           generalMedia: Array.isArray(res.data.generalMedia) ? res.data.generalMedia : []
         })
-        clearTimeout(timer)
         setLoading(false)
       })
       .catch(err => {
         console.error("Error loading home page data:", err)
         setError("Error al cargar la información. Por favor, intente de nuevo más tarde.")
-        clearTimeout(timer)
         setLoading(false)
       })
-
-    return () => clearTimeout(timer)
   }, [])
 
   const { championship, liveMatches, teams, leaders, generalMedia } = data
@@ -783,7 +775,6 @@ export default function Home() {
                         src={getAssetUrl(m.file_path)}
                         alt={m.title || 'Torneo'}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
                       />
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3.5">
                         <p className="text-[11px] font-black text-white leading-tight truncate">{m.title || 'Galería General'}</p>
