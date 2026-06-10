@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { LayoutDashboard, Users, UserCheck, Trophy, Swords, LogOut, Menu, X, ArrowLeft, User, Image } from 'lucide-react'
+import { LayoutDashboard, Users, UserCheck, Trophy, Swords, LogOut, Menu, X, ArrowLeft, User, Image, FileText } from 'lucide-react'
 import { toastSuccess, toastError } from '../lib/swal'
 import client from '../api/client'
 
@@ -10,6 +10,7 @@ const allMenuItems = [
   { name: 'Árbitros', href: '/admin/arbitros', icon: UserCheck, roles: ['admin'] },
   { name: 'Campeonatos', href: '/admin/campeonatos', icon: Trophy, roles: ['admin'] },
   { name: 'Partidos', href: '/admin/partidos', icon: Swords, roles: ['admin', 'directiva'] },
+  { name: 'Importar Acta', href: '/admin/partidos/importar-acta', icon: FileText, roles: ['admin', 'directiva'] },
   { name: 'Multimedia', href: '/admin/multimedia', icon: Image, roles: ['admin', 'directiva'] },
 ]
 
