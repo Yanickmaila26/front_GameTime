@@ -9,6 +9,7 @@ const Referees = lazy(() => import('./Pages/Admin/Referees'))
 const Championships = lazy(() => import('./Pages/Admin/Championships'))
 const Matches = lazy(() => import('./Pages/Admin/Matches'))
 const MatchLive = lazy(() => import('./Pages/Admin/MatchLive'))
+const ImportActa = lazy(() => import('./Pages/Admin/ImportActa'))
 const Multimedia = lazy(() => import('./Pages/Admin/Multimedia'))
 
 // Simple Auth guard component
@@ -68,6 +69,11 @@ function App() {
           <Route path="/admin/partidos" element={
             <ProtectedRoute allowedRoles={['admin', 'directiva']}>
               <Matches />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/partidos/importar-acta" element={
+            <ProtectedRoute allowedRoles={['admin', 'directiva']}>
+              <ImportActa />
             </ProtectedRoute>
           } />
           <Route path="/admin/partidos/:id/live" element={
