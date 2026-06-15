@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Users, Award, Shield, Calendar, CheckCircle2, TrendingUp, ChevronDown, Image } from 'lucide-react';
-import { getAssetUrl } from '../api/client';
+import client, { getAssetUrl } from '../api/client';
 
 export default function MyTeamTab({ teams = [] }) {
   const [selectedTeamId, setSelectedTeamId] = useState(null);
@@ -92,8 +92,26 @@ export default function MyTeamTab({ teams = [] }) {
     setLocalLightboxOpen(true);
   };
 
-  // Get selected team's uploaded photos or fallbacks
-  const teamPhotos = selectedTeam?.media || [];
+  const [teamPhotos, setTeamPhotos] = useState([]);
+  const [loadingPhotos, setLoadingPhotos] = useState(false);
+
+  useEffect(() => {
+    if (selectedTeamId) {
+      setLoadingPhotos(true);
+      client.get(`/teams/${selectedTeamId}/media`)
+        .then(res => {
+          setTeamPhotos(res.data || []);
+        })
+        .catch(() => {
+          setTeamPhotos([]);
+        })
+        .finally(() => {
+          setLoadingPhotos(false);
+        });
+    } else {
+      setTeamPhotos([]);
+    }
+  }, [selectedTeamId]);
   const defaultPhotos = [
     { id: 'd1', file_path: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&auto=format&fit=crop&q=60', title: 'Entrenamiento del Equipo' },
     { id: 'd2', file_path: 'https://images.unsplash.com/photo-1519766304817-4f37bda74a27?w=600&auto=format&fit=crop&q=60', title: 'Planificación de Jugadas' },
