@@ -34,10 +34,10 @@ export default function LeadersTab({ leaders }) {
           {leaders.scorers.map((player, idx) => (
             <div
               key={player.id}
-              className={`relative overflow-hidden rounded-2xl border p-3.5 flex items-center justify-between transition-all duration-300 ${
+              className={`relative overflow-hidden rounded-2xl border flex items-center justify-between transition-all duration-300 ${
                 idx === 0
-                  ? 'border-basketball/35 bg-basketball/5 backdrop-blur-md shadow-[0_0_15px_rgba(245,124,0,0.06)]'
-                  : 'border-gray-900/60 bg-gray-950/20 backdrop-blur-md hover:border-gray-800/60'
+                  ? 'pt-6 pb-3.5 px-3.5 border-basketball/35 bg-basketball/5 backdrop-blur-md shadow-[0_0_15px_rgba(245,124,0,0.06)]'
+                  : 'p-3.5 border-gray-900/60 bg-gray-950/20 backdrop-blur-md hover:border-gray-800/60'
               }`}
             >
               {idx === 0 && (
@@ -74,10 +74,10 @@ export default function LeadersTab({ leaders }) {
 
               <div className="text-right">
                 <span className="block text-lg font-black text-white tracking-tighter leading-none">
-                  {player.ppg}
+                  {player.total}
                 </span>
                 <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
-                  PPG
+                  Puntos
                 </span>
               </div>
             </div>
@@ -96,10 +96,10 @@ export default function LeadersTab({ leaders }) {
           {leaders.threepointers.map((player, idx) => (
             <div
               key={player.id}
-              className={`relative overflow-hidden rounded-2xl border p-3.5 flex items-center justify-between transition-all duration-300 ${
+              className={`relative overflow-hidden rounded-2xl border flex items-center justify-between transition-all duration-300 ${
                 idx === 0
-                  ? 'border-electric-light/35 bg-electric/5 backdrop-blur-md shadow-[0_0_15px_rgba(25,118,210,0.06)]'
-                  : 'border-gray-900/60 bg-gray-950/20 backdrop-blur-md hover:border-gray-800/60'
+                  ? 'pt-6 pb-3.5 px-3.5 border-electric-light/35 bg-electric/5 backdrop-blur-md shadow-[0_0_15px_rgba(25,118,210,0.06)]'
+                  : 'p-3.5 border-gray-900/60 bg-gray-950/20 backdrop-blur-md hover:border-gray-800/60'
               }`}
             >
               {idx === 0 && (
@@ -135,10 +135,10 @@ export default function LeadersTab({ leaders }) {
 
               <div className="text-right">
                 <span className="block text-lg font-black text-white tracking-tighter leading-none">
-                  {player.tpg}
+                  {player.total}
                 </span>
                 <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
-                  TPG ({player.total} Totales)
+                  Triples
                 </span>
               </div>
             </div>
@@ -157,10 +157,10 @@ export default function LeadersTab({ leaders }) {
           {(leaders.rebounders || leaders.foulers || []).map((player, idx) => (
             <div
               key={player.id}
-              className={`relative overflow-hidden rounded-2xl border p-3.5 flex items-center justify-between transition-all duration-300 ${
+              className={`relative overflow-hidden rounded-2xl border flex items-center justify-between transition-all duration-300 ${
                 idx === 0
-                  ? 'border-amber-500/35 bg-amber-500/5 backdrop-blur-md shadow-[0_0_15px_rgba(245,158,11,0.06)]'
-                  : 'border-gray-900/60 bg-gray-950/20 backdrop-blur-md hover:border-gray-800/60'
+                  ? 'pt-6 pb-3.5 px-3.5 border-amber-500/35 bg-amber-500/5 backdrop-blur-md shadow-[0_0_15px_rgba(245,158,11,0.06)]'
+                  : 'p-3.5 border-gray-900/60 bg-gray-950/20 backdrop-blur-md hover:border-gray-800/60'
               }`}
             >
               {idx === 0 && (
@@ -196,10 +196,10 @@ export default function LeadersTab({ leaders }) {
 
               <div className="text-right">
                 <span className="block text-lg font-black text-white tracking-tighter leading-none">
-                  {player.rpg}
+                  {player.total}
                 </span>
                 <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
-                  FPP ({player.total} Totales)
+                  Faltas
                 </span>
               </div>
             </div>
