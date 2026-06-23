@@ -36,9 +36,8 @@ const mockLeaders = {
 
 function TeamLogo({ team, className = "w-10 h-10", showText = true }) {
   if (!team) return null
-  if (team.logo_url) {
-    return <img src={getAssetUrl(team.logo_url)} alt={team.name} className={`${className} rounded-xl object-cover flex-shrink-0`} />
-  }
+  // logo_url is no longer returned by /api/home to reduce response size.
+  // Use logo_color + short_name as the identifier.
   const isHex = team.logo_color?.startsWith('#')
   return (
     <div 
@@ -72,6 +71,7 @@ export default function Home() {
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxImg, setLightboxImg] = useState('')
   const [lightboxTitle, setLightboxTitle] = useState('')
+  const [lightboxLoading, setLightboxLoading] = useState(false)
 
   // Load auth context from localStorage
   const auth = useMemo(() => {
@@ -114,6 +114,24 @@ export default function Home() {
     setLightboxImg(imgUrl)
     setLightboxTitle(titleText)
     setLightboxOpen(true)
+  }, [])
+
+  // Lazy-load media file_path on demand — avoids including heavy Base64 in /api/home
+  const handleOpenMediaLightbox = useCallback(async (mediaId, title) => {
+    setLightboxLoading(true)
+    setLightboxTitle(title || '')
+    setLightboxOpen(true)
+    setLightboxImg('')
+    try {
+      const res = await client.get(`/media/${mediaId}`)
+      const rawPath = res.data?.file_path || ''
+      setLightboxImg(getAssetUrl(rawPath))
+    } catch (e) {
+      console.error('Error loading media file_path:', e)
+      setLightboxImg('')
+    } finally {
+      setLightboxLoading(false)
+    }
   }, [])
 
   const standingsTeams = useMemo(() => {
@@ -769,14 +787,15 @@ export default function Home() {
                   {generalMedia.map((m) => (
                     <div
                       key={m.id}
-                      onClick={() => handleOpenLightbox(getAssetUrl(m.file_path), m.title)}
+                      onClick={() => handleOpenMediaLightbox(m.id, m.title)}
                       className="group relative rounded-2xl overflow-hidden border border-gray-900/60 bg-gray-950/20 hover:border-basketball/40 backdrop-blur-md aspect-square cursor-pointer transition-all"
                     >
-                      <img
-                        src={getAssetUrl(m.file_path)}
-                        alt={m.title || 'Torneo'}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
+                      {/* Placeholder while file_path is not yet loaded */}
+                      <div className="w-full h-full bg-gray-900/60 flex items-center justify-center">
+                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-2 text-center">
+                          {m.title || 'Foto'}
+                        </span>
+                      </div>
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3.5">
                         <p className="text-[11px] font-black text-white leading-tight truncate">{m.title || 'Galería General'}</p>
                         <span className="text-[8px] text-[#FFB74D] font-bold uppercase tracking-wider block mt-0.5">Ver en Grande</span>
@@ -826,20 +845,31 @@ export default function Home() {
         {lightboxOpen && (
           <div 
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-md cursor-pointer"
-            onClick={() => setLightboxOpen(false)}
+            onClick={() => { setLightboxOpen(false); setLightboxImg(''); setLightboxLoading(false); }}
           >
             <div className="relative max-w-4xl max-h-[90vh] flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
               <button 
-                onClick={() => setLightboxOpen(false)}
+                onClick={() => { setLightboxOpen(false); setLightboxImg(''); setLightboxLoading(false); }}
                 className="absolute -top-10 right-0 text-white hover:text-orange-500 font-extrabold text-xs flex items-center space-x-1"
               >
                 <span>✕</span> <span>Cerrar</span>
               </button>
-              <img 
-                src={lightboxImg} 
-                alt="Visualización" 
-                className="max-w-full max-h-[80vh] rounded-2xl object-contain border border-gray-900 shadow-2xl" 
-              />
+              {lightboxLoading ? (
+                <div className="w-72 h-72 flex flex-col items-center justify-center space-y-3">
+                  <Loader2 className="w-10 h-10 text-basketball animate-spin" />
+                  <span className="text-xs text-gray-400 font-bold">Cargando imagen...</span>
+                </div>
+              ) : lightboxImg ? (
+                <img 
+                  src={lightboxImg} 
+                  alt="Visualización" 
+                  className="max-w-full max-h-[80vh] rounded-2xl object-contain border border-gray-900 shadow-2xl" 
+                />
+              ) : (
+                <div className="w-72 h-72 flex items-center justify-center rounded-2xl bg-gray-900/60 border border-gray-800">
+                  <span className="text-xs text-gray-500 font-bold">No se pudo cargar la imagen</span>
+                </div>
+              )}
               {lightboxTitle && (
                 <p className="text-white text-xs font-black mt-3 bg-gray-950/80 px-4 py-2 rounded-xl border border-gray-900/60 backdrop-blur-sm">
                   {lightboxTitle}

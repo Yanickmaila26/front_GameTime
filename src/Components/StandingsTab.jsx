@@ -1,11 +1,7 @@
 import React from 'react';
-import { getAssetUrl } from '../api/client';
 
 function TeamLogo({ team, className = "w-5.5 h-5.5" }) {
   if (!team) return null;
-  if (team.logo_url) {
-    return <img src={getAssetUrl(team.logo_url)} alt={team.name} className={`${className} rounded-lg object-cover flex-shrink-0`} />;
-  }
   const isHex = team.logo_color?.startsWith('#');
   return (
     <div 
