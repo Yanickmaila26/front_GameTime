@@ -423,6 +423,7 @@ function ManualMatchModal({ championship, onClose, onSuccess }) {
   const [errors, setErrors] = useState({})
   const [processing, setProcessing] = useState(false)
   const [sameTeamError, setSameTeamError] = useState(false)
+  const [crossGroup, setCrossGroup] = useState(false)
 
   const setData = (keyOrFunc, value) => {
     if (typeof keyOrFunc === 'function') {
@@ -443,7 +444,7 @@ function ManualMatchModal({ championship, onClose, onSuccess }) {
 
   const isGroupStage = data.stage === 'group'
 
-  const filteredTeams = (hasGroups && isGroupStage)
+  const filteredTeams = (hasGroups && isGroupStage && !crossGroup)
     ? (data.group_name ? championshipTeams.filter(t => t.pivot?.group_name === data.group_name) : [])
     : championshipTeams
 
@@ -459,7 +460,7 @@ function ManualMatchModal({ championship, onClose, onSuccess }) {
 
     const payload = {
       ...data,
-      group_name: (hasGroups && isGroupStage) ? data.group_name : null,
+      group_name: (hasGroups && isGroupStage && !crossGroup) ? data.group_name : null,
     }
 
     client.post(`/admin/campeonatos/${championship.id}/partido-manual`, payload)
@@ -517,32 +518,50 @@ function ManualMatchModal({ championship, onClose, onSuccess }) {
             </div>
           </div>
 
-          {/* Grupo (si la fase es grupos y el campeonato tiene grupos) */}
+          {/* Toggle entre grupos + selector de grupo */}
           {hasGroups && isGroupStage && (
-            <div className="space-y-1.5">
-              <label className={labelClass}>🗂 Grupo</label>
-              <select
-                value={data.group_name}
-                onChange={e => {
-                  setDataState(prev => ({
-                    ...prev,
-                    group_name: e.target.value,
-                    home_team_id: '',
-                    away_team_id: ''
-                  }))
+            <div className="space-y-3">
+              {/* Toggle cross-group */}
+              <button
+                type="button"
+                onClick={() => {
+                  setCrossGroup(prev => !prev)
+                  setDataState(prev => ({ ...prev, group_name: '', home_team_id: '', away_team_id: '' }))
                   setSameTeamError(false)
                 }}
-                required
-                className={selectClass}
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl border text-xs font-bold transition-all ${
+                  crossGroup
+                    ? 'bg-orange-500/10 border-orange-500/40 text-orange-400'
+                    : 'bg-[#121212] border-[#222] text-gray-400 hover:border-[#444]'
+                }`}
               >
-                <option value="">Seleccionar grupo</option>
-                {groupOptions.map(g => <option key={g} value={g}>Grupo {g}</option>)}
-              </select>
+                <span>⚡ Partido entre grupos distintos</span>
+                <span className={`w-4 h-4 rounded-full border-2 flex-shrink-0 transition-all ${crossGroup ? 'bg-orange-500 border-orange-500' : 'border-gray-600'}`} />
+              </button>
+
+              {/* Selector de grupo (solo si NO es cross-group) */}
+              {!crossGroup && (
+                <div className="space-y-1.5">
+                  <label className={labelClass}>🗂 Grupo</label>
+                  <select
+                    value={data.group_name}
+                    onChange={e => {
+                      setDataState(prev => ({ ...prev, group_name: e.target.value, home_team_id: '', away_team_id: '' }))
+                      setSameTeamError(false)
+                    }}
+                    required
+                    className={selectClass}
+                  >
+                    <option value="">Seleccionar grupo</option>
+                    {groupOptions.map(g => <option key={g} value={g}>Grupo {g}</option>)}
+                  </select>
+                </div>
+              )}
             </div>
           )}
 
           {/* Equipos */}
-          {(!hasGroups || !isGroupStage || data.group_name) ? (
+          {(!hasGroups || !isGroupStage || crossGroup || data.group_name) ? (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <label className={labelClass}>🏠 Equipo Local</label>
@@ -550,7 +569,7 @@ function ManualMatchModal({ championship, onClose, onSuccess }) {
                   <option value="">Seleccionar equipo local...</option>
                   {filteredTeams.map(t => (
                     <option key={t.id} value={t.id} disabled={String(t.id) === String(data.away_team_id)}>
-                      {t.name}{String(t.id) === String(data.away_team_id) ? ' (ya seleccionado)' : ''}
+                      {crossGroup && t.pivot?.group_name ? `[Grp ${t.pivot.group_name}] ` : ''}{t.name}{String(t.id) === String(data.away_team_id) ? ' (ya seleccionado)' : ''}
                     </option>
                   ))}
                 </select>
@@ -561,7 +580,7 @@ function ManualMatchModal({ championship, onClose, onSuccess }) {
                   <option value="">Seleccionar equipo visitante...</option>
                   {filteredTeams.map(t => (
                     <option key={t.id} value={t.id} disabled={String(t.id) === String(data.home_team_id)}>
-                      {t.name}{String(t.id) === String(data.home_team_id) ? ' (ya seleccionado)' : ''}
+                      {crossGroup && t.pivot?.group_name ? `[Grp ${t.pivot.group_name}] ` : ''}{t.name}{String(t.id) === String(data.home_team_id) ? ' (ya seleccionado)' : ''}
                     </option>
                   ))}
                 </select>
@@ -569,7 +588,7 @@ function ManualMatchModal({ championship, onClose, onSuccess }) {
             </div>
           ) : (
             <div className="bg-orange-500/5 border border-orange-500/10 rounded-2xl p-3 text-center text-xs text-orange-400 font-bold">
-              Selecciona un grupo para poder elegir los equipos.
+              Selecciona un grupo o activa "Partido entre grupos distintos".
             </div>
           )}
 
