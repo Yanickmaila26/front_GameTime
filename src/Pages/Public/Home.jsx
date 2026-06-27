@@ -10,6 +10,7 @@ import LeadersTab from '../../Components/LeadersTab'
 import MyTeamTab from '../../Components/MyTeamTab'
 import Sponsors from '../../Components/Sponsors'
 import client, { getAssetUrl } from '../../api/client'
+import { getTeamLogo } from '../../utils/teamLogos'
 import { 
   Sparkles, Calendar, MapPin, Lock, ArrowRight, Trophy, 
   Instagram, Facebook, Youtube, Bell, User, Loader2
@@ -36,11 +37,13 @@ const mockLeaders = {
 
 function TeamLogo({ team, className = "w-10 h-10", showText = true }) {
   if (!team) return null
-  // logo_url is no longer returned by /api/home to reduce response size.
-  // Use logo_color + short_name as the identifier.
+  const localLogo = getTeamLogo(team.name)
+  if (localLogo) {
+    return <img src={localLogo} alt={team.name} className={`${className} rounded-xl object-cover flex-shrink-0`} />
+  }
   const isHex = team.logo_color?.startsWith('#')
   return (
-    <div 
+    <div
       style={isHex ? { backgroundColor: team.logo_color } : {}}
       className={`${className} ${!isHex ? `bg-gradient-to-br ${team.logo_color || 'from-orange-500 to-amber-600'}` : ''} rounded-xl flex items-center justify-center font-black text-black text-xs flex-shrink-0`}
     >

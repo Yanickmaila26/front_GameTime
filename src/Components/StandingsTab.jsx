@@ -1,10 +1,15 @@
 import React from 'react';
+import { getTeamLogo } from '../utils/teamLogos';
 
 function TeamLogo({ team, className = "w-5.5 h-5.5" }) {
   if (!team) return null;
+  const localLogo = getTeamLogo(team.name);
+  if (localLogo) {
+    return <img src={localLogo} alt={team.name} className={`${className} rounded-lg object-cover flex-shrink-0`} />;
+  }
   const isHex = team.logo_color?.startsWith('#');
   return (
-    <div 
+    <div
       style={isHex ? { backgroundColor: team.logo_color } : {}}
       className={`${className} ${!isHex ? `bg-gradient-to-br ${team.logo_color || 'from-orange-500 to-amber-600'}` : ''} rounded-lg flex items-center justify-center font-black text-black text-[9px] flex-shrink-0`}
     >
