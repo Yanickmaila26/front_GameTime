@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from 'react'
+import React, { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense, memo } from 'react'
 import { Link } from 'react-router-dom'
 const ThreeBasketball = lazy(() => import('../../Components/ThreeBasketball'))
 import Lightning from '../../Components/Lightning'
@@ -15,6 +15,49 @@ import {
   Sparkles, Calendar, MapPin, Lock, ArrowRight, Trophy, 
   Instagram, Facebook, Youtube, Bell, User, Loader2
 } from 'lucide-react'
+
+// Lazy-loads thumbnail when card enters viewport, then opens lightbox on click
+const LazyMediaCard = memo(function LazyMediaCard({ m, onOpen }) {
+  const [src, setSrc] = useState(null)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          observer.disconnect()
+          client.get(`/media/${m.id}`)
+            .then(res => setSrc(getAssetUrl(res.data?.file_path || '')))
+            .catch(() => {})
+        }
+      },
+      { rootMargin: '100px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [m.id])
+
+  return (
+    <div
+      ref={ref}
+      onClick={() => onOpen(m.id, m.title)}
+      className="group relative rounded-2xl overflow-hidden border border-gray-900/60 bg-gray-950/20 hover:border-basketball/40 backdrop-blur-md aspect-square cursor-pointer transition-all"
+    >
+      {src
+        ? <img src={src} alt={m.title || 'Foto'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+        : <div className="w-full h-full bg-gray-900/60 flex items-center justify-center">
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-2 text-center">{m.title || 'Foto'}</span>
+          </div>
+      }
+      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3.5">
+        <p className="text-[11px] font-black text-white leading-tight truncate">{m.title || 'Galería General'}</p>
+        <span className="text-[8px] text-[#FFB74D] font-bold uppercase tracking-wider block mt-0.5">Ver en Grande</span>
+      </div>
+    </div>
+  )
+})
 
 // Dynamic leaders mock data mapping
 const mockLeaders = {
@@ -788,22 +831,7 @@ export default function Home() {
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-w-5xl mx-auto">
                   {generalMedia.map((m) => (
-                    <div
-                      key={m.id}
-                      onClick={() => handleOpenMediaLightbox(m.id, m.title)}
-                      className="group relative rounded-2xl overflow-hidden border border-gray-900/60 bg-gray-950/20 hover:border-basketball/40 backdrop-blur-md aspect-square cursor-pointer transition-all"
-                    >
-                      {/* Placeholder while file_path is not yet loaded */}
-                      <div className="w-full h-full bg-gray-900/60 flex items-center justify-center">
-                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest px-2 text-center">
-                          {m.title || 'Foto'}
-                        </span>
-                      </div>
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3.5">
-                        <p className="text-[11px] font-black text-white leading-tight truncate">{m.title || 'Galería General'}</p>
-                        <span className="text-[8px] text-[#FFB74D] font-bold uppercase tracking-wider block mt-0.5">Ver en Grande</span>
-                      </div>
-                    </div>
+                    <LazyMediaCard key={m.id} m={m} onOpen={handleOpenMediaLightbox} />
                   ))}
                 </div>
               )}

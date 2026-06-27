@@ -1,4 +1,30 @@
 import React, { useState, useEffect, useMemo } from 'react';
+
+async function compressImage(file, maxWidth = 1200, quality = 0.72) {
+  return new Promise((resolve) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      let { width, height } = img
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width)
+        width = maxWidth
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+      canvas.toBlob(
+        (blob) => resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' })),
+        'image/jpeg',
+        quality
+      )
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file) }
+    img.src = url
+  })
+}
 import AdminLayout from '../../Components/AdminLayout';
 import { Image, Upload, Trash2, Shield, Globe, Plus, AlertCircle } from 'lucide-react';
 import { toastSuccess, toastError, confirmDelete } from '../../lib/swal';
@@ -60,19 +86,16 @@ export default function Multimedia() {
     return multimedia.filter(m => m.team_id === Number(selectedTeamId));
   }, [multimedia, selectedTeamId]);
 
-  const handleGeneralSubmit = (e) => {
+  const handleGeneralSubmit = async (e) => {
     e.preventDefault();
     setGeneralProcessing(true);
     setGeneralErrors({});
-    
+
+    const compressed = await Promise.all((generalForm.files || []).map(f => compressImage(f)));
     const formData = new FormData();
     formData.append('title', generalForm.title);
     formData.append('team_id', '');
-    if (generalForm.files) {
-      generalForm.files.forEach((file, index) => {
-        formData.append(`files[${index}]`, file);
-      });
-    }
+    compressed.forEach((file, index) => formData.append(`files[${index}]`, file));
 
     client.post('/admin/multimedia', formData, {
       headers: {
@@ -95,19 +118,16 @@ export default function Multimedia() {
       .finally(() => setGeneralProcessing(false));
   };
 
-  const handleTeamSubmit = (e) => {
+  const handleTeamSubmit = async (e) => {
     e.preventDefault();
     setTeamProcessing(true);
     setTeamErrors({});
 
+    const compressed = await Promise.all((teamForm.files || []).map(f => compressImage(f)));
     const formData = new FormData();
     formData.append('title', teamForm.title);
     formData.append('team_id', selectedTeamId);
-    if (teamForm.files) {
-      teamForm.files.forEach((file, index) => {
-        formData.append(`files[${index}]`, file);
-      });
-    }
+    compressed.forEach((file, index) => formData.append(`files[${index}]`, file));
 
     client.post('/admin/multimedia', formData, {
       headers: {
